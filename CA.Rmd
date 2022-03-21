@@ -1,6 +1,10 @@
 ---
 title: "Mortality dataset CA"
-output: html_notebook
+output:
+  html_notebook: default
+  html_document:
+    df_print: paged
+  pdf_document: default
 ---
 
 CA on the mortality dataset available on the FactoMineR package
@@ -13,16 +17,112 @@ data("mortality")
 # inspect the dataset
 mortality
 ```
-As we can see, the dataset is a dataframe with 62 rows(the different causes of death) and 18 columns. Each columns represents an age interval.....
+Let's see a brief summary of the main statistichs of the dataset
+```{r}
+summary(mortality)
+```
+
+As we can see, the "mortality" dataset is a data frame with 62 rows (the different causes of death) and 18 
+columns. Each column corresponds to an age interval (15-24, 25-34, 35-44, 45-54, 55-64, 65-74, 
+75-84, 85-94, 95 and more) in a year. The first 9 columns correspond to data in 1979 and the 9 
+last columns to data in 2006. In each cell, the count of deaths for a cause of death in an age 
+interval (in a year) is given.
 
 The first 9 cols correspond to data in 1979 and the 9 last columns correspond to data in 2006.
 
-We will perform PCA considering only the data corresponding to 1979 (the first 9 columns)
+We will perform PCA considering only the data corresponding to 1979 (the first 9 columns). <\br>
+
+For this exercise, you should perform a CA considering only the data corresponding to 1979 (the 
+first nine columns), and answer the following questions:
+- Interpret the first factorial plane (dimensions 1 and 2)
+- Which percentage of variability is explained by the first two dimensions?
+- Study the similarities between age groups according to causes of death
+- Study the similarities between causes of death according to age groups
+- Which are the main associations between age groups and causes of death?
+- What are the age intervals best represented in the first factorial plane?
+- What are the three causes of death most influencing the formation of the first principal 
+component?
+You must justify all the steps you take. You must also contextualize all results
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*
+
+```{r}
+# perform CA on the first 8 columns
+res.ca <- CA(mortality[, 1:8])
+```
+
+Due to the high number of rows, the CA graph is very difficult to interpret; we'll try to visualize things in a smarter way.
+At first, let's see a summary of the performed CA to obtain some first insights.
 
 
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+```{r}
+summary(res.ca)
+```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r}
+res.ca
+```
+Let's now analyze one by one the results of the CA
+
+# Eigenvalues
+```{r}
+res.ca$eig
+```
+## Bar plot
+Let's graphically visualyze the obtained eigenvalues
+```{r}
+barplot(res.ca$eig[,2],main="Eigenvalues", names.arg=1:nrow(res.ca$eig))
+```
+From the graph above and from the values seen before, we can easily conclude that the first 2 dimensions are enough to describe the entire cloud of points, since they capture more than 90% of the total inertia of the cloud of points, i.e. they capture the largest percentage of the deviation from independence of our dataset. 
+There, an analysis on the plane consisting of the first 2 dimensions would be sufficient to extract conclusions from the performed CA. <br> <br>
+
+### Row analysis
+```{r}
+#res.ca$row
+# Output to long to visualize
+```
+
+
+```{r}
+res.ca$row$coord  # coordinates of the rows (i.e. causes od death) in the new dimensions
+```
+```{r}
+res.ca$row$contrib  # how much each row contribtes to each dimension
+```
+
+
+```{r}
+res.ca$row$cos2 # represents the quality of the representations: eg. from all the variance that has canada, how much of it is explained by each dimension. Eg Canada in not well represented by our graph, since we need the 5th dimension. While USA is very represented in this graph of this first 2 dimensions. Also UK is not really represented with the first 2 dimensions: you need to look at the other 2 dimensions
+```
+
+### Column analysis
+
+```{r}
+#res.ca$col
+# Output to long to visualize
+```
+
+
+```{r}
+res.ca$col$coord  # coordinates of the rows (i.e. causes od death) in the new dimensions
+```
+```{r}
+res.ca$col$contrib  # how much each row contribtes to each dimension
+```
+
+```{r}
+res.ca$col$cos2 # represents the quality of the representations: eg. from all the variance that has canada, how much of it is explained by each dimension. Eg Canada in not well represented by our graph, since we need the 5th dimension. While USA is very represented in this graph of this first 2 dimensions. Also UK is not really represented with the first 2 dimensions: you need to look at the other 2 dimensions
+```
+## Plots
+Let's now try to build some meaningful plots, since the full CA plot contains overlapping points
+
+```{r}
+?plot.CA
+```
+
+```{r}
+plot.CA(res, cex=0.8, selectRow="contrib 4", selectCol = "contrib 3")
+```
+
