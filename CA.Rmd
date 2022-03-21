@@ -1,15 +1,25 @@
 ---
-title: "R Notebook"
+title: "Mortality dataset CA"
 output: html_notebook
 ---
 
-CA analysis notebook
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+CA on the mortality dataset available on the FactoMineR package
 
 ```{r}
-plot(cars)
+# load library
+library(FactoMineR)
+# load the data
+data("mortality")
+# inspect the dataset
+mortality
 ```
+As we can see, the dataset is a dataframe with 62 rows(the different causes of death) and 18 columns. Each columns represents an age interval.....
+
+The first 9 cols correspond to data in 1979 and the 9 last columns correspond to data in 2006.
+
+We will perform PCA considering only the data corresponding to 1979 (the first 9 columns)
+
+
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
 
