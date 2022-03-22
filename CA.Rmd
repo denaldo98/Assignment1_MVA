@@ -7,20 +7,31 @@ output:
   pdf_document: default
 ---
 
-CA on the mortality dataset available on the FactoMineR package
+### CA on the mortality dataset available on the FactoMineR package
 
 ```{r}
 # load library
 library(FactoMineR)
+```
+
+
+```{r}
 # load the data
 data("mortality")
+```
+
+
+```{r}
 # inspect the dataset
 mortality
 ```
+
 Let's see a brief summary of the main statistichs of the dataset
+
 ```{r}
 summary(mortality)
 ```
+
 
 As we can see, the "mortality" dataset is a data frame with 62 rows (the different causes of death) and 18 
 columns. Each column corresponds to an age interval (15-24, 25-34, 35-44, 45-54, 55-64, 65-74, 
@@ -46,6 +57,8 @@ You must justify all the steps you take. You must also contextualize all results
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*
 
+
+### Let's perform CA on the first 8 columns
 ```{r}
 # perform CA on the first 8 columns
 res.ca <- CA(mortality[, 1:8])
@@ -66,12 +79,12 @@ res.ca
 ```
 Let's now analyze one by one the results of the CA
 
-# Eigenvalues
+### Eigenvalues
 ```{r}
 res.ca$eig
 ```
-## Bar plot
-Let's graphically visualyze the obtained eigenvalues
+#### Bar plot
+Let's graphically vizualyze the obtained eigenvalues
 ```{r}
 barplot(res.ca$eig[,2],main="Eigenvalues", names.arg=1:nrow(res.ca$eig))
 ```
@@ -89,7 +102,7 @@ There, an analysis on the plane consisting of the first 2 dimensions would be su
 res.ca$row$coord  # coordinates of the rows (i.e. causes od death) in the new dimensions
 ```
 ```{r}
-res.ca$row$contrib  # how much each row contribtes to each dimension
+res.ca$row$contrib  # how much each row contributes to each dimension
 ```
 
 
@@ -106,14 +119,14 @@ res.ca$row$cos2 # represents the quality of the representations: eg. from all th
 
 
 ```{r}
-res.ca$col$coord  # coordinates of the rows (i.e. causes od death) in the new dimensions
+res.ca$col$coord  # coordinates of the cols (i.e. age ranges) in the new dimensions
 ```
 ```{r}
-res.ca$col$contrib  # how much each row contribtes to each dimension
+res.ca$col$contrib  # how much each col contribtes to each dimension
 ```
 
 ```{r}
-res.ca$col$cos2 # represents the quality of the representations: eg. from all the variance that has canada, how much of it is explained by each dimension. Eg Canada in not well represented by our graph, since we need the 5th dimension. While USA is very represented in this graph of this first 2 dimensions. Also UK is not really represented with the first 2 dimensions: you need to look at the other 2 dimensions
+res.ca$col$cos2 # quality of the representations: eg. from all the variance that has canada, how much of it is explained by each dimension. Eg Canada in not well represented by our graph, since we need the 5th dimension. While USA is very represented in this graph of this first 2 dimensions. Also UK is not really represented with the first 2 dimensions: you need to look at the other 2 dimensions
 ```
 ## Plots
 Let's now try to build some meaningful plots, since the full CA plot contains overlapping points
@@ -123,6 +136,9 @@ Let's now try to build some meaningful plots, since the full CA plot contains ov
 ```
 
 ```{r}
-plot.CA(res, cex=0.8, selectRow="contrib 4", selectCol = "contrib 3")
+plot.CA(res.ca, cex=0.7, shadowtext = True")
+```
+```{r}
+
 ```
 
