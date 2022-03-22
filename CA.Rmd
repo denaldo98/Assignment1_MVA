@@ -8,10 +8,15 @@ output:
 ---
 
 ### CA on the mortality dataset available on the FactoMineR package
+```{r}
+#install.packages(c("FactoMineR", "factoextra"))
+#install.packages(c("gplots", "corrplot"))
+```
 
 ```{r}
 # load library
-library(FactoMineR)
+library(FactoMineR) # for CA
+library(factoextra) # for bettet visualizations
 ```
 
 
@@ -20,10 +25,11 @@ library(FactoMineR)
 data("mortality")
 ```
 
-
+#### Exploratory data analysis
 ```{r}
 # inspect the dataset
-mortality
+#mortality
+head(mortality) # first rows
 ```
 
 Let's see a brief summary of the main statistichs of the dataset
@@ -36,8 +42,7 @@ summary(mortality)
 As we can see, the "mortality" dataset is a data frame with 62 rows (the different causes of death) and 18 
 columns. Each column corresponds to an age interval (15-24, 25-34, 35-44, 45-54, 55-64, 65-74, 
 75-84, 85-94, 95 and more) in a year. The first 9 columns correspond to data in 1979 and the 9 
-last columns to data in 2006. In each cell, the count of deaths for a cause of death in an age 
-interval (in a year) is given.
+last columns to data in 2006. In each cell, the count of deaths for a cause of death in an ageninterval (in a year) is given.
 
 The first 9 cols correspond to data in 1979 and the 9 last columns correspond to data in 2006.
 
@@ -55,13 +60,12 @@ first nine columns), and answer the following questions:
 component?
 You must justify all the steps you take. You must also contextualize all results
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*
 
 
 ### Let's perform CA on the first 8 columns
 ```{r}
 # perform CA on the first 8 columns
-res.ca <- CA(mortality[, 1:8])
+res.ca <- CA(mortality[, 1:8],graph= FALSE) # don't show CA graph
 ```
 
 Due to the high number of rows, the CA graph is very difficult to interpret; we'll try to visualize things in a smarter way.
@@ -70,47 +74,300 @@ At first, let's see a summary of the performed CA to obtain some first insights.
 
 
 ```{r}
-summary(res.ca)
+#summary(res.ca)
 ```
 
 
 ```{r}
 res.ca
 ```
+### Visualization and Interpretation
+
 Let's now analyze one by one the results of the CA
 
-### Eigenvalues
+#### Eigenvalues
 ```{r}
 res.ca$eig
 ```
-#### Bar plot
-Let's graphically vizualyze the obtained eigenvalues
+##### Bar plot
+Let's graphically visualize the obtained eigenvalues by looking at the Scree Plot
+
 ```{r}
-barplot(res.ca$eig[,2],main="Eigenvalues", names.arg=1:nrow(res.ca$eig))
+fviz_screeplot(res.ca, addlabels = TRUE, ylim = c(0, 65))
 ```
 From the graph above and from the values seen before, we can easily conclude that the first 2 dimensions are enough to describe the entire cloud of points, since they capture more than 90% of the total inertia of the cloud of points, i.e. they capture the largest percentage of the deviation from independence of our dataset. 
 There, an analysis on the plane consisting of the first 2 dimensions would be sufficient to extract conclusions from the performed CA. <br> <br>
 
-### Row analysis
+
+
+
+#### Plots
+Let's now try to build some meaningful plots, since the full CA plot contains overlapping points
+
 ```{r}
-#res.ca$row
+?plot.CA 
+```
+
+```{r}
+#plot.CA(res.ca, cex=0.7, shadowtext = "True", label=c("col"))
+```
+
+The function fviz_ca_biplot() of the package factoextra can be used to draw the biplot of rows and columns variables.
+```{r}
+?fviz_ca_biplot # provides ggplot-based elegant visualizations of CA outputs
+```
+
+```{r}
+options(ggrepel.max.overlaps = 5) # max number of allowed overlaps 
+fviz_ca_biplot(res.ca, repel=TRUE) # repel= TRUE to avoid text overlapping
+```
+Rows are represented as blue points and cols as red triangles.
+The distance between any row points or column points gives a measure of their similarity (or dissimilarity). Row points with similar profile are closed on the factor map. The same holds true for column points.
+
+The graph shows that some causes of death are mostly present in younger people, i.e. we can see a high proximity between younger people and "Road accidents", "Complications in pregnanccy and birth",..
+We can see that older people share a lot of causes of death.
+
+Only age ranges 15-24, 25-34, 35-44, 45-54 are far from the origin
+
+#### Row analysis
+```{r}
+#head(res.ca$row)
 # Output to long to visualize
 ```
 
+##### Coordinates of row points
 
 ```{r}
-res.ca$row$coord  # coordinates of the rows (i.e. causes od death) in the new dimensions
+head(res.ca$row$coord)  # coordinates of the row points (i.e. causes od death) in the new dimensions
 ```
-```{r}
-res.ca$row$contrib  # how much each row contributes to each dimension
-```
-
 
 ```{r}
-res.ca$row$cos2 # represents the quality of the representations: eg. from all the variance that has canada, how much of it is explained by each dimension. Eg Canada in not well represented by our graph, since we need the 5th dimension. While USA is very represented in this graph of this first 2 dimensions. Also UK is not really represented with the first 2 dimensions: you need to look at the other 2 dimensions
+head(res.ca$row$contrib)  # how much each row contributes to each dimension
 ```
 
-### Column analysis
+
+
+```{r}
+# visualize only row points
+fviz_ca_row(res.ca, repel = TRUE, col.row="steelblue", shape.row = 15) # change shape and color of the row points
+```
+The plot above shows the relationships between row points:
+
+Rows with a similar profile are grouped together.
+Negatively correlated rows are positioned on opposite sides of the plot origin (opposed quadrants).
+The distance between row points and the origin measures the quality of the row points on the factor map. Row points that are away from the origin are well represented on the factor map.
+
+##### Quality of representation of rows
+
+The result of the analysis shows that, the contingency table has been successfully represented in low dimension space using correspondence analysis. The two dimensions 1 and 2 are sufficient to retain 90% of the total inertia (variation) contained in the data.
+
+However, not all the points are equally well displayed in the two dimensions.
+
+The quality of representation of the rows on the factor map is called the squared cosine (cos2) or the squared correlations.
+
+The cos2 measures the degree of association between rows/columns and a particular axis. The cos2 of row points can be extracted as follow: 
+
+```{r}
+head(res.ca$row$cos2,3) # quality of representation of first 3 row points
+```
+The values of the cos2 are comprised between 0 and 1. The sum of the cos2 for rows on all the CA dimensions is equal to one.
+
+The quality of representation of a row or column in n dimensions is simply the sum of the squared cosine of that row or column over the n dimensions.
+
+If a row item is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+It’s possible to color row points by their cos2 values using the argument col.row = "cos2". This produces a gradient colors, which can be customized using the argument gradient.cols. For instance, gradient.cols = c("white", "blue", "red") means that:
+
+variables with low cos2 values will be colored in “white”
+variables with mid cos2 values will be colored in “blue”
+variables with high cos2 values will be colored in red
+```{r}
+# Color by cos2 values: quality on the factor map
+fviz_ca_row(res.ca, col.row = "cos2",
+             gradient.cols = c("white", "blue", "red"), 
+             repel = TRUE)
+```
+Note that, it’s also possible to change the transparency of the row points according to their cos2 values using the option alpha.row = "cos2". For example, type this:
+
+```{r}
+# Change the transparency by cos2 values
+fviz_ca_row(res.ca, repel=TRUE, alpha.row="cos2")
+```
+
+It’s also possible to create a bar plot of rows cos2 using the function fviz_cos2() (in factoextra):
+
+```{r}
+# Cos2 of rows on Dim.1 and Dim.2
+fviz_cos2(res.ca, choice = "row", axes = 1:2, repel=TRUE, top=15) # show only top 15
+```
+
+
+##### Contributions of rows to the dimensions
+
+```{r}
+head(res.ca$row$contrib)
+```
+The row variables with the larger value, contribute the most to the definition of the dimensions.
+
+The function fviz_contrib() [factoextra package] can be used to draw a bar plot of row contributions. If your data contains many rows, you can decide to show only the top contributing rows. The R code below shows the top 10 rows contributing to the dimensions:
+
+```{r}
+# Contributions of rows to dimension 1
+fviz_contrib(res.ca, choice = "row", axes = 1, top = 10)
+```
+
+The total contribution to dimension 1 and 2 can be obtained as follow:
+```{r}
+fviz_contrib(res.ca, choice = "row", axes = 1:2, top = 15)
+```
+The rows "Road accidents", "Suicides", "Other accidents" are the most important in the definition of the first dimension
+
+```{r}
+# Contributions of rows to dimension 2
+fviz_contrib(res.ca, choice = "row", axes = 2, top = 10)
+```
+
+The most important (or, contributing) row points can be highlighted on the biplot as follows:
+
+```{r}
+fviz_ca_row(res.ca, col.row = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE)
+```
+
+Note that, it’s also possible to control the transparency of row points according to their contribution values using the option alpha.row = "contrib", as shown below:
+```{r}
+# Change the transparency by contrib values
+fviz_ca_row(res.ca, alpha.row="contrib",
+             repel = TRUE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Column analysis
+```{r}
+#head(res.ca$row)
+# Output to long to visualize
+```
+
+##### Coordinates of column points
+
+```{r}
+head(res.ca$row$coord)  # coordinates of the row points (i.e. causes od death) in the new dimensions
+```
+
+
+
+
+```{r}
+# visualize only col points
+fviz_ca_col(res.ca, repel = TRUE, col.col ="steelblue", shape.col = 15) # change shape and color of the row points
+```
+The plot above shows the relationships between row points:
+
+Rows with a similar profile are grouped together.
+Negatively correlated rows are positioned on opposite sides of the plot origin (opposed quadrants).
+The distance between row points and the origin measures the quality of the row points on the factor map. Row points that are away from the origin are well represented on the factor map.
+
+##### Quality of representation of column
+
+The result of the analysis shows that, the contingency table has been successfully represented in low dimension space using correspondence analysis. The two dimensions 1 and 2 are sufficient to retain 90% of the total inertia (variation) contained in the data.
+
+However, not all the points are equally well displayed in the two dimensions.
+
+The quality of representation of the rows on the factor map is called the squared cosine (cos2) or the squared correlations.
+
+The cos2 measures the degree of association between rows/columns and a particular axis. The cos2 of row points can be extracted as follow: 
+
+```{r}
+head(res.ca$col$cos2,3) # quality of representation of first 3 col points
+```
+The values of the cos2 are comprised between 0 and 1. The sum of the cos2 for rows on all the CA dimensions is equal to one.
+
+The quality of representation of a row or column in n dimensions is simply the sum of the squared cosine of that row or column over the n dimensions.
+
+If a row item is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+It’s possible to color row points by their cos2 values using the argument col.row = "cos2". This produces a gradient colors, which can be customized using the argument gradient.cols. For instance, gradient.cols = c("white", "blue", "red") means that:
+
+variables with low cos2 values will be colored in “white”
+variables with mid cos2 values will be colored in “blue”
+variables with high cos2 values will be colored in red
+```{r}
+# Color by cos2 values: quality on the factor map
+fviz_ca_col(res.ca, col.col = "cos2",
+             gradient.cols = c("white", "blue", "red"), 
+             repel = TRUE)
+```
+Note that, it’s also possible to change the transparency of the row points according to their cos2 values using the option alpha.row = "cos2". For example, type this:
+
+```{r}
+# Change the transparency by cos2 values
+fviz_ca_col(res.ca, repel=TRUE, alpha.col="cos2")
+```
+
+It’s also possible to create a bar plot of rows cos2 using the function fviz_cos2() (in factoextra):
+
+```{r}
+# Cos2 of rows on Dim.1 and Dim.2
+fviz_cos2(res.ca, choice = "row", axes = 1:2, repel=TRUE, top=15) # show only top 15
+```
+
+
+##### Contributions of rows to the dimensions
+
+```{r}
+head(res.ca$row$contrib)
+```
+The row variables with the larger value, contribute the most to the definition of the dimensions.
+
+The function fviz_contrib() [factoextra package] can be used to draw a bar plot of row contributions. If your data contains many rows, you can decide to show only the top contributing rows. The R code below shows the top 10 rows contributing to the dimensions:
+
+```{r}
+# Contributions of rows to dimension 1
+fviz_contrib(res.ca, choice = "row", axes = 1, top = 10)
+```
+
+The total contribution to dimension 1 and 2 can be obtained as follow:
+```{r}
+fviz_contrib(res.ca, choice = "row", axes = 1:2, top = 15)
+```
+The rows "Road accidents", "Suicides", "Other accidents" are the most important in the definition of the first dimension
+
+```{r}
+# Contributions of rows to dimension 2
+fviz_contrib(res.ca, choice = "row", axes = 2, top = 10)
+```
+
+The most important (or, contributing) row points can be highlighted on the biplot as follows:
+
+```{r}
+fviz_ca_row(res.ca, col.row = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE)
+```
+
+Note that, it’s also possible to control the transparency of row points according to their contribution values using the option alpha.row = "contrib", as shown below:
+```{r}
+# Change the transparency by contrib values
+fviz_ca_row(res.ca, alpha.row="contrib",
+             repel = TRUE)
+```
+
+
+
 
 ```{r}
 #res.ca$col
@@ -121,22 +378,11 @@ res.ca$row$cos2 # represents the quality of the representations: eg. from all th
 ```{r}
 res.ca$col$coord  # coordinates of the cols (i.e. age ranges) in the new dimensions
 ```
+
 ```{r}
-res.ca$col$contrib  # how much each col contribtes to each dimension
+res.ca$col$contrib  # how much each col contributes to each dimension
 ```
 
 ```{r}
-res.ca$col$cos2 # quality of the representations: eg. from all the variance that has canada, how much of it is explained by each dimension. Eg Canada in not well represented by our graph, since we need the 5th dimension. While USA is very represented in this graph of this first 2 dimensions. Also UK is not really represented with the first 2 dimensions: you need to look at the other 2 dimensions
+res.ca$col$cos2 # quality of representaitio
 ```
-## Plots
-Let's now try to build some meaningful plots, since the full CA plot contains overlapping points
-
-```{r}
-?plot.CA
-```
-
-```{r}
-plot.CA(res.ca, cex=0.7, shadowtext = "True")
-```
-
-
