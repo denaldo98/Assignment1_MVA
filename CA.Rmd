@@ -136,9 +136,7 @@ Let's now try to build some meaningful plots, since the full CA plot contains ov
 ```
 
 ```{r}
-plot.CA(res.ca, cex=0.7, shadowtext = True")
+plot.CA(res.ca, cex=0.7, shadowtext = "True")
 ```
-```{r}
 
-```
 
