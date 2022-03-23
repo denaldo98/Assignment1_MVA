@@ -127,6 +127,19 @@ We can see that older people share a lot of causes of death.
 
 Only age ranges 15-24, 25-34, 35-44, 45-54 are far from the origin
 
+#####  Interpretation of the 1st factorial plane
+Most of the deviation from independence comes from the separation of the young age ranges, i.e. 15-24, 25-34, 35-44 and the rest. This is well captured by the 1st dimension which separates young people (on the right side) from old people (on the left of the origin).The 2nd dimension separates the age-range 15.24(in the top) from the rest of the ranges: in particular it shows an opposition of the that range with the range 45-54 and 55-64.
+The position of each cause of death shows the range of age it affects more.
+For instance, we can see that causes of death in the first quadrant of the biplot are mostly related to young age-ranges.
+
+Since the previous biplot is pretty difficult to interpret, we show only the rows contributing more to the first 2 dim
+```{r}
+#plot.CA(res.ca,selectRow ="contrib ",selectCol = "contrib 5") 
+#fviz_ca_biplot(res.ca, repel=TRUE, select.row = list(contrib = 8))
+plot.CA(res.ca, selectRow ="contrib 10", shadow=TRUE, cex=0.7, unselect = 0.92, autoLab="auto")
+```
+
+
 #### Row analysis
 ```{r}
 #head(res.ca$row)
@@ -356,25 +369,4 @@ Note that, it’s also possible to control the transparency of row points accord
 # Change the transparency by contrib values
 fviz_ca_col(res.ca, alpha.col="contrib",
              repel = TRUE)
-```
-
-
-
-
-```{r}
-#res.ca$col
-# Output to long to visualize
-```
-
-
-```{r}
-res.ca$col$coord  # coordinates of the cols (i.e. age ranges) in the new dimensions
-```
-
-```{r}
-res.ca$col$contrib  # how much each col contributes to each dimension
-```
-
-```{r}
-res.ca$col$cos2 # quality of representaitio
 ```
