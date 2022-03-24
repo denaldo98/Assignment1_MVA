@@ -11,7 +11,7 @@
 
 
 
-<title>R Notebook</title>
+<title>Mortality dataset CA</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1754,37 +1754,566 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">R Notebook</h1>
+<h1 class="title toc-ignore">Mortality dataset CA</h1>
 
 </div>
 
 
 <!-- rnb-text-begin -->
-<p>This is an <a href="http://rmarkdown.rstudio.com">R Markdown</a>
-Notebook. When you execute code within the notebook, the results appear
-beneath the code.</p>
-<p>Try executing this chunk by clicking the <em>Run</em> button within
-the chunk or by placing your cursor inside it and pressing
-<em>Ctrl+Shift+Enter</em>.</p>
+<div id="ca-on-the-mortality-dataset-available-on-the-factominer-package" class="section level3">
+<h3>CA on the mortality dataset available on the FactoMineR package</h3>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdChjYXJzKVxuYGBgIn0= -->
-<pre class="r"><code>plot(cars)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2luc3RhbGwucGFja2FnZXMoYyhcIkZhY3RvTWluZVJcIiwgXCJmYWN0b2V4dHJhXCIpKVxuI2luc3RhbGwucGFja2FnZXMoYyhcImdwbG90c1wiLCBcImNvcnJwbG90XCIpKVxuYGBgIn0= -->
+<pre class="r"><code>#install.packages(c(&quot;FactoMineR&quot;, &quot;factoextra&quot;))
+#install.packages(c(&quot;gplots&quot;, &quot;corrplot&quot;))</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Add a new chunk by clicking the <em>Insert Chunk</em> button on the
-toolbar or by pressing <em>Ctrl+Alt+I</em>.</p>
-<p>When you save the notebook, an HTML file containing the code and
-output will be saved alongside it (click the <em>Preview</em> button or
-press <em>Ctrl+Shift+K</em> to preview the HTML file).</p>
-<p>The preview shows you a rendered HTML copy of the contents of the
-editor. Consequently, unlike <em>Knit</em>, <em>Preview</em> does not
-run any R code chunks. Instead, the output of the chunk when it was last
-run in the editor is displayed.</p>
 <!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBsb2FkIGxpYnJhcnlcbmxpYnJhcnkoRmFjdG9NaW5lUikgIyBmb3IgQ0FcbmxpYnJhcnkoZmFjdG9leHRyYSkgIyBmb3IgYmV0dGV0IHZpc3VhbGl6YXRpb25zXG5gYGAifQ== -->
+<pre class="r"><code># load library
+library(FactoMineR) # for CA
+library(factoextra) # for bettet visualizations</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBsb2FkIHRoZSBkYXRhXG5kYXRhKFwibW9ydGFsaXR5XCIpXG5gYGAifQ== -->
+<pre class="r"><code># load the data
+data(&quot;mortality&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="exploratory-data-analysis" class="section level4">
+<h4>Exploratory data analysis</h4>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBpbnNwZWN0IHRoZSBkYXRhc2V0XG4jbW9ydGFsaXR5XG5oZWFkKG1vcnRhbGl0eSkgIyBmaXJzdCByb3dzXG5gYGAifQ== -->
+<pre class="r"><code># inspect the dataset
+#mortality
+head(mortality) # first rows</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Let’s see a brief summary of the main statistichs of the dataset</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShtb3J0YWxpdHkpXG5gYGAifQ== -->
+<pre class="r"><code>summary(mortality)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>As we can see, the “mortality” dataset is a data frame with 62 rows
+(the different causes of death) and 18 columns. Each column corresponds
+to an age interval (15-24, 25-34, 35-44, 45-54, 55-64, 65-74, 75-84,
+85-94, 95 and more) in a year. The first 9 columns correspond to data in
+1979 and the 9 last columns to data in 2006. In each cell, the count of
+deaths for a cause of death in an ageninterval (in a year) is given.</p>
+<p>The first 9 cols correspond to data in 1979 and the 9 last columns
+correspond to data in 2006.</p>
+<p>We will perform PCA considering only the data corresponding to 1979
+(the first 9 columns). &lt;&gt;</p>
+<p>For this exercise, you should perform a CA considering only the data
+corresponding to 1979 (the first nine columns), and answer the following
+questions: - Interpret the first factorial plane (dimensions 1 and 2) -
+Which percentage of variability is explained by the first two
+dimensions? - Study the similarities between age groups according to
+causes of death - Study the similarities between causes of death
+according to age groups - Which are the main associations between age
+groups and causes of death? - What are the age intervals best
+represented in the first factorial plane? - What are the three causes of
+death most influencing the formation of the first principal component?
+You must justify all the steps you take. You must also contextualize all
+results</p>
+</div>
+</div>
+<div id="ca-on-the-first-8-columns" class="section level2">
+<h2>CA on the first 8 columns</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBwZXJmb3JtIENBIG9uIHRoZSBmaXJzdCA4IGNvbHVtbnNcbnJlcy5jYSA8LSBDQShtb3J0YWxpdHlbLCAxOjhdLGdyYXBoPSBGQUxTRSkgIyBkb24ndCBzaG93IENBIGdyYXBoXG5gYGAifQ== -->
+<pre class="r"><code># perform CA on the first 8 columns
+res.ca &lt;- CA(mortality[, 1:8],graph= FALSE) # don&#39;t show CA graph</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Due to the high number of rows, the CA graph is very difficult to
+interpret; we’ll try to visualize things in a smarter way. At first,
+let’s see a summary of the performed CA to obtain some first
+insights.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3N1bW1hcnkocmVzLmNhKVxuYGBgIn0= -->
+<pre class="r"><code>#summary(res.ca)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVzLmNhXG5gYGAifQ== -->
+<pre class="r"><code>res.ca</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="visualization-and-interpretation" class="section level3">
+<h3>Visualization and Interpretation</h3>
+<p>Let’s now analyze the ouptuts of the CA</p>
+<div id="eigenvalues" class="section level4">
+<h4>Eigenvalues</h4>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVzLmNhJGVpZ1xuYGBgIn0= -->
+<pre class="r"><code>res.ca$eig</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="scree-plot" class="section level5">
+<h5>Scree Plot</h5>
+<p>Let’s graphically visualize the obtained eigenvalues by looking at
+the Scree Plot</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZnZpel9zY3JlZXBsb3QocmVzLmNhLCBhZGRsYWJlbHMgPSBUUlVFLCB5bGltID0gYygwLCA2NSkpXG5gYGAifQ== -->
+<pre class="r"><code>fviz_screeplot(res.ca, addlabels = TRUE, ylim = c(0, 65))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>From the graph above and from the values seen before, we can easily
+conclude that the first 2 dimensions are enough to describe the entire
+cloud of points, since they capture more than 90% of the total inertia
+of the cloud of points, i.e. they capture the largest percentage of the
+deviation from independence of our dataset. Therefore, an analysis on
+the plane consisting of the first 2 dimensions would be sufficient to
+extract conclusions from the performed CA. <br> <br></p>
+</div>
+</div>
+<div id="plots" class="section level4">
+<h4>Plots</h4>
+<p>Let’s now try to build some meaningful plots, since the full CA plot
+contains overlapping points</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuPz9wbG90LkNBIFxuYGBgIn0= -->
+<pre class="r"><code>??plot.CA </code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3Bsb3QuQ0EocmVzLmNhLCBjZXg9MC43LCBzaGFkb3d0ZXh0ID0gXCJUcnVlXCIsIGxhYmVsPWMoXCJjb2xcIikpXG5gYGAifQ== -->
+<pre class="r"><code>#plot.CA(res.ca, cex=0.7, shadowtext = &quot;True&quot;, label=c(&quot;col&quot;))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The function fviz_ca_biplot() of the package “factoextra” can be used
+to draw the biplot of rows and columns variables, i.e. to provide a
+simultaneous representation of rows and columns</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuP2Z2aXpfY2FfYmlwbG90ICMgcHJvdmlkZXMgZ2dwbG90LWJhc2VkIGVsZWdhbnQgdmlzdWFsaXphdGlvbnMgb2YgQ0Egb3V0cHV0c1xuYGBgIn0= -->
+<pre class="r"><code>?fviz_ca_biplot # provides ggplot-based elegant visualizations of CA outputs</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub3B0aW9ucyhnZ3JlcGVsLm1heC5vdmVybGFwcyA9IDYpICMgbWF4IG51bWJlciBvZiBhbGxvd2VkIG92ZXJsYXBzIChmb3IgYWxsIHRoZSBjdXJyZW50IHNlc3Npb24pIFxuZnZpel9jYV9iaXBsb3QocmVzLmNhLCByZXBlbD1UUlVFKSAjIHJlcGVsPSBUUlVFIHRvIGF2b2lkIHRleHQgb3ZlcmxhcHBpbmdcbmBgYCJ9 -->
+<pre class="r"><code>options(ggrepel.max.overlaps = 6) # max number of allowed overlaps (for all the current session) 
+fviz_ca_biplot(res.ca, repel=TRUE) # repel= TRUE to avoid text overlapping</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Rows are represented as blue points and cols as red triangles. The
+distance between any row points or column points gives a measure of
+their similarity (or dissimilarity). Row points with similar profile are
+closed on the factor map. The same holds true for column points.</p>
+<p>The graph shows that some causes of death are mostly present in
+younger people, i.e. we can see a high proximity between younger people
+and “Road accidents”, “Complications in pregnanccy and birth”,.. We can
+see that older people share a lot of causes of death.</p>
+<p>Only age ranges 15-24, 25-34, 35-44, 45-54 are far from the
+origin</p>
+<div id="interpretation-of-the-1st-factorial-plane" class="section level5">
+<h5>Interpretation of the 1st factorial plane</h5>
+<p>Most of the deviation from independence comes from the separation of
+the young age ranges, i.e. 15-24, 25-34, 35-44 and the rest. This is
+well captured by the 1st dimension which separates young people (on the
+right side) from old people (on the left of the origin).The 2nd
+dimension separates the age-range 15.24(in the top) from the rest of the
+ranges: in particular it shows an opposition of the that range with the
+range 45-54 and 55-64. The position of each cause of death shows the
+range of age it affects more. For instance, we can see that causes of
+death in the first quadrant of the biplot are mostly related to young
+age-ranges.</p>
+<p>Since the previous biplot is pretty difficult to interpret, we show
+only the rows contributing more to the first 2 dim</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3Bsb3QuQ0EocmVzLmNhLHNlbGVjdFJvdyA9XCJjb250cmliIFwiLHNlbGVjdENvbCA9IFwiY29udHJpYiA1XCIpIFxuI2Z2aXpfY2FfYmlwbG90KHJlcy5jYSwgcmVwZWw9VFJVRSwgc2VsZWN0LnJvdyA9IGxpc3QoY29udHJpYiA9IDgpKVxucGxvdC5DQShyZXMuY2EsIHNlbGVjdFJvdyA9XCJjb250cmliIDEwXCIsIHNoYWRvdz1UUlVFLCBjZXg9MC43LCB1bnNlbGVjdCA9IDAuOTIsIGF1dG9MYWI9XCJhdXRvXCIpXG5gYGAifQ== -->
+<pre class="r"><code>#plot.CA(res.ca,selectRow =&quot;contrib &quot;,selectCol = &quot;contrib 5&quot;) 
+#fviz_ca_biplot(res.ca, repel=TRUE, select.row = list(contrib = 8))
+plot.CA(res.ca, selectRow =&quot;contrib 10&quot;, shadow=TRUE, cex=0.7, unselect = 0.92, autoLab=&quot;auto&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+</div>
+<div id="row-analysis" class="section level4">
+<h4>Row analysis</h4>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2hlYWQocmVzLmNhJHJvdylcbiMgT3V0cHV0IHRvIGxvbmcgdG8gdmlzdWFsaXplXG5gYGAifQ== -->
+<pre class="r"><code>#head(res.ca$row)
+# Output to long to visualize</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="coordinates-of-row-points" class="section level5">
+<h5>Coordinates of row points</h5>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChyZXMuY2Ekcm93JGNvb3JkKSAgIyBjb29yZGluYXRlcyBvZiB0aGUgcm93IHBvaW50cyAoaS5lLiBjYXVzZXMgb2QgZGVhdGgpIGluIHRoZSBuZXcgZGltZW5zaW9uc1xuYGBgIn0= -->
+<pre class="r"><code>head(res.ca$row$coord)  # coordinates of the row points (i.e. causes od death) in the new dimensions</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyB2aXN1YWxpemUgb25seSByb3cgcG9pbnRzXG5mdml6X2NhX3JvdyhyZXMuY2EsIHJlcGVsID0gVFJVRSwgY29sLnJvdz1cInN0ZWVsYmx1ZVwiLCBzaGFwZS5yb3cgPSAxNSkgIyBjaGFuZ2Ugc2hhcGUgYW5kIGNvbG9yIG9mIHRoZSByb3cgcG9pbnRzXG5gYGAifQ== -->
+<pre class="r"><code># visualize only row points
+fviz_ca_row(res.ca, repel = TRUE, col.row=&quot;steelblue&quot;, shape.row = 15) # change shape and color of the row points</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The plot above shows the relationships between row points:</p>
+<p>Rows with a similar profile are grouped together. Negatively
+correlated rows are positioned on opposite sides of the plot origin
+(opposed quadrants). The distance between row points and the origin
+measures the quality of the row points on the factor map. Row points
+that are away from the origin are well represented on the factor
+map.</p>
+</div>
+<div id="quality-of-representation-of-rows" class="section level5">
+<h5>Quality of representation of rows</h5>
+<p>The result of the analysis shows that, the contingency table has been
+successfully represented in low dimension space using correspondence
+analysis. The two dimensions 1 and 2 are sufficient to retain more than
+90% of the total inertia (variation) contained in the data.</p>
+<p>However, not all the points are equally well displayed in the two
+dimensions.</p>
+<p>The quality of representation of the rows on the new dimensions is
+called the squared cosine (cos2) or the squared correlations.</p>
+<p>The cos2 measures the degree of association between rows/columns and
+a particular axis. The cos2 of row points can be extracted as
+follow:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChyZXMuY2Ekcm93JGNvczIsMykgIyBxdWFsaXR5IG9mIHJlcHJlc2VudGF0aW9uIG9mIGZpcnN0IDMgcm93IHBvaW50c1xuYGBgIn0= -->
+<pre class="r"><code>head(res.ca$row$cos2,3) # quality of representation of first 3 row points</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The values of the cos2 are comprised between 0 and 1. The sum of the
+cos2 for rows on all the CA dimensions is equal to one.</p>
+<p>The quality of representation of a row or column in n dimensions is
+simply the sum of the squared cosine of that row or column over the n
+dimensions.</p>
+<p>If a row item is well represented by two dimensions, the sum of the
+cos2 is closed to one. For some of the row items, more than 2 dimensions
+are required to perfectly represent the data.</p>
+<p>It’s possible to color row points by their cos2 values using the
+argument col.row = “cos2”. This produces a gradient colors, which can be
+customized using the argument gradient.cols. For instance, gradient.cols
+= c(“white”, “blue”, “red”) means that:</p>
+<ul>
+<li>variables with low cos2 values will be colored in “white”</li>
+<li>variables with mid cos2 values will be colored in “blue”</li>
+<li>variables with high cos2 values will be colored in “red”</li>
+</ul>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDb2xvciBieSBjb3MyIHZhbHVlczogcXVhbGl0eSBvbiB0aGUgZmFjdG9yIG1hcFxuZnZpel9jYV9yb3cocmVzLmNhLCBjb2wucm93ID0gXCJjb3MyXCIsXG4gICAgICAgICAgICAgZ3JhZGllbnQuY29scyA9IGMoXCJ3aGl0ZVwiLCBcImJsdWVcIiwgXCJyZWRcIiksIFxuICAgICAgICAgICAgIHJlcGVsID0gVFJVRSlcbmBgYCJ9 -->
+<pre class="r"><code># Color by cos2 values: quality on the factor map
+fviz_ca_row(res.ca, col.row = &quot;cos2&quot;,
+             gradient.cols = c(&quot;white&quot;, &quot;blue&quot;, &quot;red&quot;), 
+             repel = TRUE)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Note that, it’s also possible to change the transparency of the row
+points according to their cos2 values using the option alpha.row =
+“cos2”:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDaGFuZ2UgdGhlIHRyYW5zcGFyZW5jeSBieSBjb3MyIHZhbHVlc1xuZnZpel9jYV9yb3cocmVzLmNhLCByZXBlbD1UUlVFLCBhbHBoYS5yb3c9XCJjb3MyXCIpXG5gYGAifQ== -->
+<pre class="r"><code># Change the transparency by cos2 values
+fviz_ca_row(res.ca, repel=TRUE, alpha.row=&quot;cos2&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>It’s also possible to create a bar plot of rows cos2 using the
+function fviz_cos2() (in factoextra):</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuP2Z2aXpfY29zMlxuYGBgIn0= -->
+<pre class="r"><code>?fviz_cos2</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDb3MyIG9mIHJvd3Mgb24gRGltLjEgYW5kIERpbS4yXG5mdml6X2NvczIocmVzLmNhLCBjaG9pY2UgPSBcInJvd1wiLCBheGVzID0gMToyLCByZXBlbD1UUlVFLCB0b3A9MTUpICMgc2hvdyBvbmx5IHRvcCAxNVxuYGBgIn0= -->
+<pre class="r"><code># Cos2 of rows on Dim.1 and Dim.2
+fviz_cos2(res.ca, choice = &quot;row&quot;, axes = 1:2, repel=TRUE, top=15) # show only top 15</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="contributions-of-rows-to-the-dimensions" class="section level5">
+<h5>Contributions of rows to the dimensions</h5>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChyZXMuY2Ekcm93JGNvbnRyaWIpXG5gYGAifQ== -->
+<pre class="r"><code>head(res.ca$row$contrib)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The row variables with the larger value, contribute the most to the
+definition of the dimensions.</p>
+<p>The function fviz_contrib() of factoextra package can be used to draw
+a bar plot of row contributions. If your data contains many rows, you
+can decide to show only the top contributing rows. The R code below
+shows the top 10 rows contributing to the dimensions:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBCYXIgcGxvdCBvZiB0aGUgY29udHJpYnV0aW9ucyBvZiByb3dzIHRvIGRpbWVuc2lvbiAxXG5mdml6X2NvbnRyaWIocmVzLmNhLCBjaG9pY2UgPSBcInJvd1wiLCBheGVzID0gMSwgdG9wID0gMTUpXG5gYGAifQ== -->
+<pre class="r"><code># Bar plot of the contributions of rows to dimension 1
+fviz_contrib(res.ca, choice = &quot;row&quot;, axes = 1, top = 15)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The total contribution to dimension 1 and 2 can be obtained as
+follow:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZnZpel9jb250cmliKHJlcy5jYSwgY2hvaWNlID0gXCJyb3dcIiwgYXhlcyA9IDE6MiwgdG9wID0gMTUpXG5gYGAifQ== -->
+<pre class="r"><code>fviz_contrib(res.ca, choice = &quot;row&quot;, axes = 1:2, top = 15)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The rows “Road accidents”, “Suicides”, “Other accidents” are the most
+important in the definition of the first dimension</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDb250cmlidXRpb25zIG9mIHJvd3MgdG8gZGltZW5zaW9uIDJcbmZ2aXpfY29udHJpYihyZXMuY2EsIGNob2ljZSA9IFwicm93XCIsIGF4ZXMgPSAyLCB0b3AgPSAxNSlcbmBgYCJ9 -->
+<pre class="r"><code># Contributions of rows to dimension 2
+fviz_contrib(res.ca, choice = &quot;row&quot;, axes = 2, top = 15)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The most important (or, contributing) row points can be highlighted
+on the plot of row points as follows:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZnZpel9jYV9yb3cocmVzLmNhLCBjb2wucm93ID0gXCJjb250cmliXCIsXG4gICAgICAgICAgICAgZ3JhZGllbnQuY29scyA9IGMoXCIjMDBBRkJCXCIsIFwiI0U3QjgwMFwiLCBcIiNGQzRFMDdcIiksIFxuICAgICAgICAgICAgIHJlcGVsID0gVFJVRSlcbmBgYCJ9 -->
+<pre class="r"><code>fviz_ca_row(res.ca, col.row = &quot;contrib&quot;,
+             gradient.cols = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;), 
+             repel = TRUE)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Note that, it’s also possible to control the transparency of row
+points according to their contribution values using the option alpha.row
+= “contrib”, as shown below:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDaGFuZ2UgdGhlIHRyYW5zcGFyZW5jeSBieSBjb250cmliIHZhbHVlc1xuZnZpel9jYV9yb3cocmVzLmNhLCBhbHBoYS5yb3c9XCJjb250cmliXCIsXG4gICAgICAgICAgICAgcmVwZWwgPSBUUlVFKVxuYGBgIn0= -->
+<pre class="r"><code># Change the transparency by contrib values
+fviz_ca_row(res.ca, alpha.row=&quot;contrib&quot;,
+             repel = TRUE)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+</div>
+<div id="column-analysis" class="section level4">
+<h4>Column analysis</h4>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2hlYWQocmVzLmNhJGNvbClcbiMgT3V0cHV0IHRvIGxvbmcgdG8gdmlzdWFsaXplXG5gYGAifQ== -->
+<pre class="r"><code>#head(res.ca$col)
+# Output to long to visualize</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="coordinates-of-column-points" class="section level5">
+<h5>Coordinates of column points</h5>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChyZXMuY2EkY29sJGNvb3JkKSAgIyBjb29yZGluYXRlcyBvZiB0aGUgY29sdW1uIHBvaW50cyAoaS5lLiBhZ2UgcmFuZ2VzKSBpbiB0aGUgbmV3IGRpbWVuc2lvbnNcbmBgYCJ9 -->
+<pre class="r"><code>head(res.ca$col$coord)  # coordinates of the column points (i.e. age ranges) in the new dimensions</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyB2aXN1YWxpemUgb25seSBjb2wgcG9pbnRzXG5mdml6X2NhX2NvbChyZXMuY2EsIHJlcGVsID0gVFJVRSkgXG5gYGAifQ== -->
+<pre class="r"><code># visualize only col points
+fviz_ca_col(res.ca, repel = TRUE) </code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The plot above shows the relationships between column points:</p>
+<p>Rows with a similar profile are grouped together. Negatively
+correlated rows are positioned on opposite sides of the plot origin
+(opposed quadrants). The distance between row points and the origin
+measures the quality of the row points on the factor map. Row points
+that are away from the origin are well represented on the factor
+map.</p>
+</div>
+<div id="quality-of-representation-of-columns" class="section level5">
+<h5>Quality of representation of columns</h5>
+<p>The result of the analysis shows that, the contingency table has been
+successfully represented in low dimension space using correspondence
+analysis. The two dimensions 1 and 2 are sufficient to retain 90% of the
+total inertia (variation) contained in the data.</p>
+<p>However, not all the points are equally well displayed in the two
+dimensions.</p>
+<p>The quality of representation of the rows on the factor map is called
+the squared cosine (cos2) or the squared correlations.</p>
+<p>The cos2 measures the degree of association between rows/columns and
+a particular axis. The cos2 of row points can be extracted as
+follow:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVzLmNhJGNvbCRjb3MyICMgcXVhbGl0eSBvZiByZXByZXNlbnRhdGlvbiBvZiBmaXJzdCAzIGNvbCBwb2ludHNcbmBgYCJ9 -->
+<pre class="r"><code>res.ca$col$cos2 # quality of representation of first 3 col points</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The values of the cos2 are comprised between 0 and 1. The sum of the
+cos2 for rows on all the CA dimensions is equal to one.</p>
+<p>The quality of representation of a row or column in n dimensions is
+simply the sum of the squared cosine of that row or column over the n
+dimensions.</p>
+<p>If a row item is well represented by two dimensions, the sum of the
+cos2 is closed to one. For some of the row items, more than 2 dimensions
+are required to perfectly represent the data.</p>
+<p>It’s possible to color row points by their cos2 values using the
+argument col.row = “cos2”. This produces a gradient colors, which can be
+customized using the argument gradient.cols. For instance, gradient.cols
+= c(“white”, “blue”, “red”) means that:</p>
+<p>variables with low cos2 values will be colored in “white” variables
+with mid cos2 values will be colored in “blue” variables with high cos2
+values will be colored in red</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDb2xvciBieSBjb3MyIHZhbHVlczogcXVhbGl0eSBvbiB0aGUgZmFjdG9yIG1hcFxuZnZpel9jYV9jb2wocmVzLmNhLCBjb2wuY29sID0gXCJjb3MyXCIsXG4gICAgICAgICAgICAgZ3JhZGllbnQuY29scyA9IGMoXCJ3aGl0ZVwiLCBcImJsdWVcIiwgXCJyZWRcIiksIFxuICAgICAgICAgICAgIHJlcGVsID0gVFJVRSlcbmBgYCJ9 -->
+<pre class="r"><code># Color by cos2 values: quality on the factor map
+fviz_ca_col(res.ca, col.col = &quot;cos2&quot;,
+             gradient.cols = c(&quot;white&quot;, &quot;blue&quot;, &quot;red&quot;), 
+             repel = TRUE)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Note that, it’s also possible to change the transparency of the row
+points according to their cos2 values using the option alpha.row =
+“cos2”. For example, type this:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDaGFuZ2UgdGhlIHRyYW5zcGFyZW5jeSBieSBjb3MyIHZhbHVlc1xuZnZpel9jYV9jb2wocmVzLmNhLCByZXBlbD1UUlVFLCBhbHBoYS5jb2wgPVwiY29zMlwiKVxuYGBgIn0= -->
+<pre class="r"><code># Change the transparency by cos2 values
+fviz_ca_col(res.ca, repel=TRUE, alpha.col =&quot;cos2&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>It’s also possible to create a bar plot of cols cos2 using the
+function fviz_cos2() (in factoextra):</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDb3MyIG9mIHJvd3Mgb24gRGltLjEgYW5kIERpbS4yXG5mdml6X2NvczIocmVzLmNhLCBjaG9pY2UgPSBcImNvbFwiLCBheGVzID0gMToyLCByZXBlbD1UUlVFLCB0b3A9MTUpICMgc2hvdyBvbmx5IHRvcCAxNVxuYGBgIn0= -->
+<pre class="r"><code># Cos2 of rows on Dim.1 and Dim.2
+fviz_cos2(res.ca, choice = &quot;col&quot;, axes = 1:2, repel=TRUE, top=15) # show only top 15</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Recall that, the value of the cos2 is between 0 and 1. A cos2 closed
+to 1 corresponds to a column/row variables that are well represented on
+the factor map.</p>
+</div>
+<div id="contributions-of-cols-to-the-dimensions" class="section level5">
+<h5>Contributions of cols to the dimensions</h5>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChyZXMuY2EkY29sJGNvbnRyaWIpXG5gYGAifQ== -->
+<pre class="r"><code>head(res.ca$col$contrib)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The row variables with the larger value, contribute the most to the
+definition of the dimensions.</p>
+<p>The function fviz_contrib() [factoextra package] can be used to draw
+a bar plot of row contributions. If your data contains many rows, you
+can decide to show only the top contributing rows. The R code below
+shows the top 10 rows contributing to the dimensions:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDb250cmlidXRpb25zIG9mIGNvbHMgdG8gZGltZW5zaW9uIDFcbmZ2aXpfY29udHJpYihyZXMuY2EsIGNob2ljZSA9IFwiY29sXCIsIGF4ZXMgPSAxKVxuYGBgIn0= -->
+<pre class="r"><code># Contributions of cols to dimension 1
+fviz_contrib(res.ca, choice = &quot;col&quot;, axes = 1)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The total contribution to dimension 1 and 2 can be obtained as
+follow:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZnZpel9jb250cmliKHJlcy5jYSwgY2hvaWNlID0gXCJjb2xcIiwgYXhlcyA9IDE6MilcbmBgYCJ9 -->
+<pre class="r"><code>fviz_contrib(res.ca, choice = &quot;col&quot;, axes = 1:2)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The rows “Road accidents”, “Suicides”, “Other accidents” are the most
+important in the definition of the first dimension</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDb250cmlidXRpb25zIG9mIGNvbHMgdG8gZGltZW5zaW9uIDJcbmZ2aXpfY29udHJpYihyZXMuY2EsIGNob2ljZSA9IFwiY29sXCIsIGF4ZXMgPSAyLCB0b3AgPSAxMClcbmBgYCJ9 -->
+<pre class="r"><code># Contributions of cols to dimension 2
+fviz_contrib(res.ca, choice = &quot;col&quot;, axes = 2, top = 10)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The most important (or, contributing) row points can be highlighted
+on the biplot as follows:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZnZpel9jYV9jb2wocmVzLmNhLCBjb2wuY29sID0gIFwiY29udHJpYlwiLFxuICAgICAgICAgICAgIGdyYWRpZW50LmNvbHMgPSBjKFwiIzAwQUZCQlwiLCBcIiNFN0I4MDBcIiwgXCIjRkM0RTA3XCIpLCBcbiAgICAgICAgICAgICByZXBlbCA9IFRSVUUpXG5gYGAifQ== -->
+<pre class="r"><code>fviz_ca_col(res.ca, col.col =  &quot;contrib&quot;,
+             gradient.cols = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;), 
+             repel = TRUE)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Note that, it’s also possible to control the transparency of row
+points according to their contribution values using the option alpha.row
+= “contrib”, as shown below:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDaGFuZ2UgdGhlIHRyYW5zcGFyZW5jeSBieSBjb250cmliIHZhbHVlc1xuZnZpel9jYV9jb2wocmVzLmNhLCBhbHBoYS5jb2w9XCJjb250cmliXCIsXG4gICAgICAgICAgICAgcmVwZWwgPSBUUlVFKVxuYGBgIn0= -->
+<pre class="r"><code># Change the transparency by contrib values
+fviz_ca_col(res.ca, alpha.col=&quot;contrib&quot;,
+             repel = TRUE)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+</div>
+</div>
+</div>
+</div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpUaGlzIGlzIGFuIFtSIE1hcmtkb3duXShodHRwOi8vcm1hcmtkb3duLnJzdHVkaW8uY29tKSBOb3RlYm9vay4gV2hlbiB5b3UgZXhlY3V0ZSBjb2RlIHdpdGhpbiB0aGUgbm90ZWJvb2ssIHRoZSByZXN1bHRzIGFwcGVhciBiZW5lYXRoIHRoZSBjb2RlLiANCg0KVHJ5IGV4ZWN1dGluZyB0aGlzIGNodW5rIGJ5IGNsaWNraW5nIHRoZSAqUnVuKiBidXR0b24gd2l0aGluIHRoZSBjaHVuayBvciBieSBwbGFjaW5nIHlvdXIgY3Vyc29yIGluc2lkZSBpdCBhbmQgcHJlc3NpbmcgKkN0cmwrU2hpZnQrRW50ZXIqLiANCg0KYGBge3J9DQpwbG90KGNhcnMpDQpgYGANCg0KQWRkIGEgbmV3IGNodW5rIGJ5IGNsaWNraW5nIHRoZSAqSW5zZXJ0IENodW5rKiBidXR0b24gb24gdGhlIHRvb2xiYXIgb3IgYnkgcHJlc3NpbmcgKkN0cmwrQWx0K0kqLg0KDQpXaGVuIHlvdSBzYXZlIHRoZSBub3RlYm9vaywgYW4gSFRNTCBmaWxlIGNvbnRhaW5pbmcgdGhlIGNvZGUgYW5kIG91dHB1dCB3aWxsIGJlIHNhdmVkIGFsb25nc2lkZSBpdCAoY2xpY2sgdGhlICpQcmV2aWV3KiBidXR0b24gb3IgcHJlc3MgKkN0cmwrU2hpZnQrSyogdG8gcHJldmlldyB0aGUgSFRNTCBmaWxlKS4NCg0KVGhlIHByZXZpZXcgc2hvd3MgeW91IGEgcmVuZGVyZWQgSFRNTCBjb3B5IG9mIHRoZSBjb250ZW50cyBvZiB0aGUgZWRpdG9yLiBDb25zZXF1ZW50bHksIHVubGlrZSAqS25pdCosICpQcmV2aWV3KiBkb2VzIG5vdCBydW4gYW55IFIgY29kZSBjaHVua3MuIEluc3RlYWQsIHRoZSBvdXRwdXQgb2YgdGhlIGNodW5rIHdoZW4gaXQgd2FzIGxhc3QgcnVuIGluIHRoZSBlZGl0b3IgaXMgZGlzcGxheWVkLg0K</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIk1vcnRhbGl0eSBkYXRhc2V0IENBIg0Kb3V0cHV0Og0KICBodG1sX25vdGVib29rOiBkZWZhdWx0DQogIGh0bWxfZG9jdW1lbnQ6DQogICAgZGZfcHJpbnQ6IHBhZ2VkDQogIHBkZl9kb2N1bWVudDogZGVmYXVsdA0KLS0tDQoNCiMjIyBDQSBvbiB0aGUgbW9ydGFsaXR5IGRhdGFzZXQgYXZhaWxhYmxlIG9uIHRoZSBGYWN0b01pbmVSIHBhY2thZ2UNCmBgYHtyfQ0KI2luc3RhbGwucGFja2FnZXMoYygiRmFjdG9NaW5lUiIsICJmYWN0b2V4dHJhIikpDQojaW5zdGFsbC5wYWNrYWdlcyhjKCJncGxvdHMiLCAiY29ycnBsb3QiKSkNCmBgYA0KDQpgYGB7cn0NCiMgbG9hZCBsaWJyYXJ5DQpsaWJyYXJ5KEZhY3RvTWluZVIpICMgZm9yIENBDQpsaWJyYXJ5KGZhY3RvZXh0cmEpICMgZm9yIGJldHRldCB2aXN1YWxpemF0aW9ucw0KYGBgDQoNCg0KYGBge3J9DQojIGxvYWQgdGhlIGRhdGENCmRhdGEoIm1vcnRhbGl0eSIpDQpgYGANCg0KIyMjIyBFeHBsb3JhdG9yeSBkYXRhIGFuYWx5c2lzDQpgYGB7cn0NCiMgaW5zcGVjdCB0aGUgZGF0YXNldA0KI21vcnRhbGl0eQ0KaGVhZChtb3J0YWxpdHkpICMgZmlyc3Qgcm93cw0KYGBgDQoNCkxldCdzIHNlZSBhIGJyaWVmIHN1bW1hcnkgb2YgdGhlIG1haW4gc3RhdGlzdGljaHMgb2YgdGhlIGRhdGFzZXQNCg0KYGBge3J9DQpzdW1tYXJ5KG1vcnRhbGl0eSkNCmBgYA0KDQoNCkFzIHdlIGNhbiBzZWUsIHRoZSAibW9ydGFsaXR5IiBkYXRhc2V0IGlzIGEgZGF0YSBmcmFtZSB3aXRoIDYyIHJvd3MgKHRoZSBkaWZmZXJlbnQgY2F1c2VzIG9mIGRlYXRoKSBhbmQgMTggDQpjb2x1bW5zLiBFYWNoIGNvbHVtbiBjb3JyZXNwb25kcyB0byBhbiBhZ2UgaW50ZXJ2YWwgKDE1LTI0LCAyNS0zNCwgMzUtNDQsIDQ1LTU0LCA1NS02NCwgNjUtNzQsIA0KNzUtODQsIDg1LTk0LCA5NSBhbmQgbW9yZSkgaW4gYSB5ZWFyLiBUaGUgZmlyc3QgOSBjb2x1bW5zIGNvcnJlc3BvbmQgdG8gZGF0YSBpbiAxOTc5IGFuZCB0aGUgOSANCmxhc3QgY29sdW1ucyB0byBkYXRhIGluIDIwMDYuIEluIGVhY2ggY2VsbCwgdGhlIGNvdW50IG9mIGRlYXRocyBmb3IgYSBjYXVzZSBvZiBkZWF0aCBpbiBhbiBhZ2VuaW50ZXJ2YWwgKGluIGEgeWVhcikgaXMgZ2l2ZW4uDQoNClRoZSBmaXJzdCA5IGNvbHMgY29ycmVzcG9uZCB0byBkYXRhIGluIDE5NzkgYW5kIHRoZSA5IGxhc3QgY29sdW1ucyBjb3JyZXNwb25kIHRvIGRhdGEgaW4gMjAwNi4NCg0KV2Ugd2lsbCBwZXJmb3JtIFBDQSBjb25zaWRlcmluZyBvbmx5IHRoZSBkYXRhIGNvcnJlc3BvbmRpbmcgdG8gMTk3OSAodGhlIGZpcnN0IDkgY29sdW1ucykuIDxcYnI+DQoNCkZvciB0aGlzIGV4ZXJjaXNlLCB5b3Ugc2hvdWxkIHBlcmZvcm0gYSBDQSBjb25zaWRlcmluZyBvbmx5IHRoZSBkYXRhIGNvcnJlc3BvbmRpbmcgdG8gMTk3OSAodGhlIA0KZmlyc3QgbmluZSBjb2x1bW5zKSwgYW5kIGFuc3dlciB0aGUgZm9sbG93aW5nIHF1ZXN0aW9uczoNCi0gSW50ZXJwcmV0IHRoZSBmaXJzdCBmYWN0b3JpYWwgcGxhbmUgKGRpbWVuc2lvbnMgMSBhbmQgMikNCi0gV2hpY2ggcGVyY2VudGFnZSBvZiB2YXJpYWJpbGl0eSBpcyBleHBsYWluZWQgYnkgdGhlIGZpcnN0IHR3byBkaW1lbnNpb25zPw0KLSBTdHVkeSB0aGUgc2ltaWxhcml0aWVzIGJldHdlZW4gYWdlIGdyb3VwcyBhY2NvcmRpbmcgdG8gY2F1c2VzIG9mIGRlYXRoDQotIFN0dWR5IHRoZSBzaW1pbGFyaXRpZXMgYmV0d2VlbiBjYXVzZXMgb2YgZGVhdGggYWNjb3JkaW5nIHRvIGFnZSBncm91cHMNCi0gV2hpY2ggYXJlIHRoZSBtYWluIGFzc29jaWF0aW9ucyBiZXR3ZWVuIGFnZSBncm91cHMgYW5kIGNhdXNlcyBvZiBkZWF0aD8NCi0gV2hhdCBhcmUgdGhlIGFnZSBpbnRlcnZhbHMgYmVzdCByZXByZXNlbnRlZCBpbiB0aGUgZmlyc3QgZmFjdG9yaWFsIHBsYW5lPw0KLSBXaGF0IGFyZSB0aGUgdGhyZWUgY2F1c2VzIG9mIGRlYXRoIG1vc3QgaW5mbHVlbmNpbmcgdGhlIGZvcm1hdGlvbiBvZiB0aGUgZmlyc3QgcHJpbmNpcGFsIA0KY29tcG9uZW50Pw0KWW91IG11c3QganVzdGlmeSBhbGwgdGhlIHN0ZXBzIHlvdSB0YWtlLiBZb3UgbXVzdCBhbHNvIGNvbnRleHR1YWxpemUgYWxsIHJlc3VsdHMNCg0KDQoNCiMjIENBIG9uIHRoZSBmaXJzdCA4IGNvbHVtbnMNCmBgYHtyfQ0KIyBwZXJmb3JtIENBIG9uIHRoZSBmaXJzdCA4IGNvbHVtbnMNCnJlcy5jYSA8LSBDQShtb3J0YWxpdHlbLCAxOjhdLGdyYXBoPSBGQUxTRSkgIyBkb24ndCBzaG93IENBIGdyYXBoDQpgYGANCg0KRHVlIHRvIHRoZSBoaWdoIG51bWJlciBvZiByb3dzLCB0aGUgQ0EgZ3JhcGggaXMgdmVyeSBkaWZmaWN1bHQgdG8gaW50ZXJwcmV0OyB3ZSdsbCB0cnkgdG8gdmlzdWFsaXplIHRoaW5ncyBpbiBhIHNtYXJ0ZXIgd2F5Lg0KQXQgZmlyc3QsIGxldCdzIHNlZSBhIHN1bW1hcnkgb2YgdGhlIHBlcmZvcm1lZCBDQSB0byBvYnRhaW4gc29tZSBmaXJzdCBpbnNpZ2h0cy4NCg0KDQoNCmBgYHtyfQ0KI3N1bW1hcnkocmVzLmNhKQ0KYGBgDQoNCg0KYGBge3J9DQpyZXMuY2ENCmBgYA0KIyMjIFZpc3VhbGl6YXRpb24gYW5kIEludGVycHJldGF0aW9uDQoNCkxldCdzIG5vdyBhbmFseXplIHRoZSBvdXB0dXRzIG9mIHRoZSBDQQ0KDQojIyMjIEVpZ2VudmFsdWVzDQpgYGB7cn0NCnJlcy5jYSRlaWcNCmBgYA0KIyMjIyMgU2NyZWUgUGxvdA0KTGV0J3MgZ3JhcGhpY2FsbHkgdmlzdWFsaXplIHRoZSBvYnRhaW5lZCBlaWdlbnZhbHVlcyBieSBsb29raW5nIGF0IHRoZSBTY3JlZSBQbG90DQoNCmBgYHtyfQ0KZnZpel9zY3JlZXBsb3QocmVzLmNhLCBhZGRsYWJlbHMgPSBUUlVFLCB5bGltID0gYygwLCA2NSkpDQpgYGANCkZyb20gdGhlIGdyYXBoIGFib3ZlIGFuZCBmcm9tIHRoZSB2YWx1ZXMgc2VlbiBiZWZvcmUsIHdlIGNhbiBlYXNpbHkgY29uY2x1ZGUgdGhhdCB0aGUgZmlyc3QgMiBkaW1lbnNpb25zIGFyZSBlbm91Z2ggdG8gZGVzY3JpYmUgdGhlIGVudGlyZSBjbG91ZCBvZiBwb2ludHMsIHNpbmNlIHRoZXkgY2FwdHVyZSBtb3JlIHRoYW4gOTAlIG9mIHRoZSB0b3RhbCBpbmVydGlhIG9mIHRoZSBjbG91ZCBvZiBwb2ludHMsIGkuZS4gdGhleSBjYXB0dXJlIHRoZSBsYXJnZXN0IHBlcmNlbnRhZ2Ugb2YgdGhlIGRldmlhdGlvbiBmcm9tIGluZGVwZW5kZW5jZSBvZiBvdXIgZGF0YXNldC4gDQpUaGVyZWZvcmUsIGFuIGFuYWx5c2lzIG9uIHRoZSBwbGFuZSBjb25zaXN0aW5nIG9mIHRoZSBmaXJzdCAyIGRpbWVuc2lvbnMgd291bGQgYmUgc3VmZmljaWVudCB0byBleHRyYWN0IGNvbmNsdXNpb25zIGZyb20gdGhlIHBlcmZvcm1lZCBDQS4gPGJyPiA8YnI+DQoNCg0KIyMjIyBQbG90cw0KTGV0J3Mgbm93IHRyeSB0byBidWlsZCBzb21lIG1lYW5pbmdmdWwgcGxvdHMsIHNpbmNlIHRoZSBmdWxsIENBIHBsb3QgY29udGFpbnMgb3ZlcmxhcHBpbmcgcG9pbnRzDQoNCmBgYHtyfQ0KPz9wbG90LkNBIA0KYGBgDQoNCmBgYHtyfQ0KI3Bsb3QuQ0EocmVzLmNhLCBjZXg9MC43LCBzaGFkb3d0ZXh0ID0gIlRydWUiLCBsYWJlbD1jKCJjb2wiKSkNCmBgYA0KDQpUaGUgZnVuY3Rpb24gZnZpel9jYV9iaXBsb3QoKSBvZiB0aGUgcGFja2FnZSAiZmFjdG9leHRyYSIgY2FuIGJlIHVzZWQgdG8gZHJhdyB0aGUgYmlwbG90IG9mIHJvd3MgYW5kIGNvbHVtbnMgdmFyaWFibGVzLCBpLmUuIHRvIHByb3ZpZGUgYSBzaW11bHRhbmVvdXMgcmVwcmVzZW50YXRpb24gb2Ygcm93cyBhbmQgY29sdW1ucw0KYGBge3J9DQo/ZnZpel9jYV9iaXBsb3QgIyBwcm92aWRlcyBnZ3Bsb3QtYmFzZWQgZWxlZ2FudCB2aXN1YWxpemF0aW9ucyBvZiBDQSBvdXRwdXRzDQpgYGANCg0KYGBge3J9DQpvcHRpb25zKGdncmVwZWwubWF4Lm92ZXJsYXBzID0gNikgIyBtYXggbnVtYmVyIG9mIGFsbG93ZWQgb3ZlcmxhcHMgKGZvciBhbGwgdGhlIGN1cnJlbnQgc2Vzc2lvbikgDQpmdml6X2NhX2JpcGxvdChyZXMuY2EsIHJlcGVsPVRSVUUpICMgcmVwZWw9IFRSVUUgdG8gYXZvaWQgdGV4dCBvdmVybGFwcGluZw0KYGBgDQpSb3dzIGFyZSByZXByZXNlbnRlZCBhcyBibHVlIHBvaW50cyBhbmQgY29scyBhcyByZWQgdHJpYW5nbGVzLg0KVGhlIGRpc3RhbmNlIGJldHdlZW4gYW55IHJvdyBwb2ludHMgb3IgY29sdW1uIHBvaW50cyBnaXZlcyBhIG1lYXN1cmUgb2YgdGhlaXIgc2ltaWxhcml0eSAob3IgZGlzc2ltaWxhcml0eSkuIFJvdyBwb2ludHMgd2l0aCBzaW1pbGFyIHByb2ZpbGUgYXJlIGNsb3NlZCBvbiB0aGUgZmFjdG9yIG1hcC4gVGhlIHNhbWUgaG9sZHMgdHJ1ZSBmb3IgY29sdW1uIHBvaW50cy4NCg0KVGhlIGdyYXBoIHNob3dzIHRoYXQgc29tZSBjYXVzZXMgb2YgZGVhdGggYXJlIG1vc3RseSBwcmVzZW50IGluIHlvdW5nZXIgcGVvcGxlLCBpLmUuIHdlIGNhbiBzZWUgYSBoaWdoIHByb3hpbWl0eSBiZXR3ZWVuIHlvdW5nZXIgcGVvcGxlIGFuZCAiUm9hZCBhY2NpZGVudHMiLCAiQ29tcGxpY2F0aW9ucyBpbiBwcmVnbmFuY2N5IGFuZCBiaXJ0aCIsLi4NCldlIGNhbiBzZWUgdGhhdCBvbGRlciBwZW9wbGUgc2hhcmUgYSBsb3Qgb2YgY2F1c2VzIG9mIGRlYXRoLg0KDQpPbmx5IGFnZSByYW5nZXMgMTUtMjQsIDI1LTM0LCAzNS00NCwgNDUtNTQgYXJlIGZhciBmcm9tIHRoZSBvcmlnaW4NCg0KIyMjIyMgIEludGVycHJldGF0aW9uIG9mIHRoZSAxc3QgZmFjdG9yaWFsIHBsYW5lDQpNb3N0IG9mIHRoZSBkZXZpYXRpb24gZnJvbSBpbmRlcGVuZGVuY2UgY29tZXMgZnJvbSB0aGUgc2VwYXJhdGlvbiBvZiB0aGUgeW91bmcgYWdlIHJhbmdlcywgaS5lLiAxNS0yNCwgMjUtMzQsIDM1LTQ0IGFuZCB0aGUgcmVzdC4gVGhpcyBpcyB3ZWxsIGNhcHR1cmVkIGJ5IHRoZSAxc3QgZGltZW5zaW9uIHdoaWNoIHNlcGFyYXRlcyB5b3VuZyBwZW9wbGUgKG9uIHRoZSByaWdodCBzaWRlKSBmcm9tIG9sZCBwZW9wbGUgKG9uIHRoZSBsZWZ0IG9mIHRoZSBvcmlnaW4pLlRoZSAybmQgZGltZW5zaW9uIHNlcGFyYXRlcyB0aGUgYWdlLXJhbmdlIDE1LjI0KGluIHRoZSB0b3ApIGZyb20gdGhlIHJlc3Qgb2YgdGhlIHJhbmdlczogaW4gcGFydGljdWxhciBpdCBzaG93cyBhbiBvcHBvc2l0aW9uIG9mIHRoZSB0aGF0IHJhbmdlIHdpdGggdGhlIHJhbmdlIDQ1LTU0IGFuZCA1NS02NC4NClRoZSBwb3NpdGlvbiBvZiBlYWNoIGNhdXNlIG9mIGRlYXRoIHNob3dzIHRoZSByYW5nZSBvZiBhZ2UgaXQgYWZmZWN0cyBtb3JlLg0KRm9yIGluc3RhbmNlLCB3ZSBjYW4gc2VlIHRoYXQgY2F1c2VzIG9mIGRlYXRoIGluIHRoZSBmaXJzdCBxdWFkcmFudCBvZiB0aGUgYmlwbG90IGFyZSBtb3N0bHkgcmVsYXRlZCB0byB5b3VuZyBhZ2UtcmFuZ2VzLg0KDQpTaW5jZSB0aGUgcHJldmlvdXMgYmlwbG90IGlzIHByZXR0eSBkaWZmaWN1bHQgdG8gaW50ZXJwcmV0LCB3ZSBzaG93IG9ubHkgdGhlIHJvd3MgY29udHJpYnV0aW5nIG1vcmUgdG8gdGhlIGZpcnN0IDIgZGltDQpgYGB7cn0NCiNwbG90LkNBKHJlcy5jYSxzZWxlY3RSb3cgPSJjb250cmliICIsc2VsZWN0Q29sID0gImNvbnRyaWIgNSIpIA0KI2Z2aXpfY2FfYmlwbG90KHJlcy5jYSwgcmVwZWw9VFJVRSwgc2VsZWN0LnJvdyA9IGxpc3QoY29udHJpYiA9IDgpKQ0KcGxvdC5DQShyZXMuY2EsIHNlbGVjdFJvdyA9ImNvbnRyaWIgMTAiLCBzaGFkb3c9VFJVRSwgY2V4PTAuNywgdW5zZWxlY3QgPSAwLjkyLCBhdXRvTGFiPSJhdXRvIikNCmBgYA0KDQoNCiMjIyMgUm93IGFuYWx5c2lzDQpgYGB7cn0NCiNoZWFkKHJlcy5jYSRyb3cpDQojIE91dHB1dCB0byBsb25nIHRvIHZpc3VhbGl6ZQ0KYGBgDQoNCiMjIyMjIENvb3JkaW5hdGVzIG9mIHJvdyBwb2ludHMNCg0KYGBge3J9DQpoZWFkKHJlcy5jYSRyb3ckY29vcmQpICAjIGNvb3JkaW5hdGVzIG9mIHRoZSByb3cgcG9pbnRzIChpLmUuIGNhdXNlcyBvZCBkZWF0aCkgaW4gdGhlIG5ldyBkaW1lbnNpb25zDQpgYGANCg0KYGBge3J9DQojIHZpc3VhbGl6ZSBvbmx5IHJvdyBwb2ludHMNCmZ2aXpfY2Ffcm93KHJlcy5jYSwgcmVwZWwgPSBUUlVFLCBjb2wucm93PSJzdGVlbGJsdWUiLCBzaGFwZS5yb3cgPSAxNSkgIyBjaGFuZ2Ugc2hhcGUgYW5kIGNvbG9yIG9mIHRoZSByb3cgcG9pbnRzDQpgYGANClRoZSBwbG90IGFib3ZlIHNob3dzIHRoZSByZWxhdGlvbnNoaXBzIGJldHdlZW4gcm93IHBvaW50czoNCg0KUm93cyB3aXRoIGEgc2ltaWxhciBwcm9maWxlIGFyZSBncm91cGVkIHRvZ2V0aGVyLg0KTmVnYXRpdmVseSBjb3JyZWxhdGVkIHJvd3MgYXJlIHBvc2l0aW9uZWQgb24gb3Bwb3NpdGUgc2lkZXMgb2YgdGhlIHBsb3Qgb3JpZ2luIChvcHBvc2VkIHF1YWRyYW50cykuDQpUaGUgZGlzdGFuY2UgYmV0d2VlbiByb3cgcG9pbnRzIGFuZCB0aGUgb3JpZ2luIG1lYXN1cmVzIHRoZSBxdWFsaXR5IG9mIHRoZSByb3cgcG9pbnRzIG9uIHRoZSBmYWN0b3IgbWFwLiBSb3cgcG9pbnRzIHRoYXQgYXJlIGF3YXkgZnJvbSB0aGUgb3JpZ2luIGFyZSB3ZWxsIHJlcHJlc2VudGVkIG9uIHRoZSBmYWN0b3IgbWFwLg0KDQojIyMjIyBRdWFsaXR5IG9mIHJlcHJlc2VudGF0aW9uIG9mIHJvd3MNCg0KVGhlIHJlc3VsdCBvZiB0aGUgYW5hbHlzaXMgc2hvd3MgdGhhdCwgdGhlIGNvbnRpbmdlbmN5IHRhYmxlIGhhcyBiZWVuIHN1Y2Nlc3NmdWxseSByZXByZXNlbnRlZCBpbiBsb3cgZGltZW5zaW9uIHNwYWNlIHVzaW5nIGNvcnJlc3BvbmRlbmNlIGFuYWx5c2lzLiBUaGUgdHdvIGRpbWVuc2lvbnMgMSBhbmQgMiBhcmUgc3VmZmljaWVudCB0byByZXRhaW4gbW9yZSB0aGFuIDkwJSBvZiB0aGUgdG90YWwgaW5lcnRpYSAodmFyaWF0aW9uKSBjb250YWluZWQgaW4gdGhlIGRhdGEuDQoNCkhvd2V2ZXIsIG5vdCBhbGwgdGhlIHBvaW50cyBhcmUgZXF1YWxseSB3ZWxsIGRpc3BsYXllZCBpbiB0aGUgdHdvIGRpbWVuc2lvbnMuDQoNClRoZSBxdWFsaXR5IG9mIHJlcHJlc2VudGF0aW9uIG9mIHRoZSByb3dzIG9uIHRoZSBuZXcgZGltZW5zaW9ucyBpcyBjYWxsZWQgdGhlIHNxdWFyZWQgY29zaW5lIChjb3MyKSBvciB0aGUgc3F1YXJlZCBjb3JyZWxhdGlvbnMuDQoNClRoZSBjb3MyIG1lYXN1cmVzIHRoZSBkZWdyZWUgb2YgYXNzb2NpYXRpb24gYmV0d2VlbiByb3dzL2NvbHVtbnMgYW5kIGEgcGFydGljdWxhciBheGlzLiBUaGUgY29zMiBvZiByb3cgcG9pbnRzIGNhbiBiZSBleHRyYWN0ZWQgYXMgZm9sbG93OiANCg0KYGBge3J9DQpoZWFkKHJlcy5jYSRyb3ckY29zMiwzKSAjIHF1YWxpdHkgb2YgcmVwcmVzZW50YXRpb24gb2YgZmlyc3QgMyByb3cgcG9pbnRzDQpgYGANClRoZSB2YWx1ZXMgb2YgdGhlIGNvczIgYXJlIGNvbXByaXNlZCBiZXR3ZWVuIDAgYW5kIDEuIFRoZSBzdW0gb2YgdGhlIGNvczIgZm9yIHJvd3Mgb24gYWxsIHRoZSBDQSBkaW1lbnNpb25zIGlzIGVxdWFsIHRvIG9uZS4NCg0KVGhlIHF1YWxpdHkgb2YgcmVwcmVzZW50YXRpb24gb2YgYSByb3cgb3IgY29sdW1uIGluIG4gZGltZW5zaW9ucyBpcyBzaW1wbHkgdGhlIHN1bSBvZiB0aGUgc3F1YXJlZCBjb3NpbmUgb2YgdGhhdCByb3cgb3IgY29sdW1uIG92ZXIgdGhlIG4gZGltZW5zaW9ucy4NCg0KSWYgYSByb3cgaXRlbSBpcyB3ZWxsIHJlcHJlc2VudGVkIGJ5IHR3byBkaW1lbnNpb25zLCB0aGUgc3VtIG9mIHRoZSBjb3MyIGlzIGNsb3NlZCB0byBvbmUuIEZvciBzb21lIG9mIHRoZSByb3cgaXRlbXMsIG1vcmUgdGhhbiAyIGRpbWVuc2lvbnMgYXJlIHJlcXVpcmVkIHRvIHBlcmZlY3RseSByZXByZXNlbnQgdGhlIGRhdGEuDQoNCkl04oCZcyBwb3NzaWJsZSB0byBjb2xvciByb3cgcG9pbnRzIGJ5IHRoZWlyIGNvczIgdmFsdWVzIHVzaW5nIHRoZSBhcmd1bWVudCBjb2wucm93ID0gImNvczIiLiBUaGlzIHByb2R1Y2VzIGEgZ3JhZGllbnQgY29sb3JzLCB3aGljaCBjYW4gYmUgY3VzdG9taXplZCB1c2luZyB0aGUgYXJndW1lbnQgZ3JhZGllbnQuY29scy4gRm9yIGluc3RhbmNlLCBncmFkaWVudC5jb2xzID0gYygid2hpdGUiLCAiYmx1ZSIsICJyZWQiKSBtZWFucyB0aGF0Og0KDQoqIHZhcmlhYmxlcyB3aXRoIGxvdyBjb3MyIHZhbHVlcyB3aWxsIGJlIGNvbG9yZWQgaW4g4oCcd2hpdGXigJ0NCiogdmFyaWFibGVzIHdpdGggbWlkIGNvczIgdmFsdWVzIHdpbGwgYmUgY29sb3JlZCBpbiDigJxibHVl4oCdDQoqIHZhcmlhYmxlcyB3aXRoIGhpZ2ggY29zMiB2YWx1ZXMgd2lsbCBiZSBjb2xvcmVkIGluIOKAnHJlZOKAnQ0KYGBge3J9DQojIENvbG9yIGJ5IGNvczIgdmFsdWVzOiBxdWFsaXR5IG9uIHRoZSBmYWN0b3IgbWFwDQpmdml6X2NhX3JvdyhyZXMuY2EsIGNvbC5yb3cgPSAiY29zMiIsDQogICAgICAgICAgICAgZ3JhZGllbnQuY29scyA9IGMoIndoaXRlIiwgImJsdWUiLCAicmVkIiksIA0KICAgICAgICAgICAgIHJlcGVsID0gVFJVRSkNCmBgYA0KTm90ZSB0aGF0LCBpdOKAmXMgYWxzbyBwb3NzaWJsZSB0byBjaGFuZ2UgdGhlIHRyYW5zcGFyZW5jeSBvZiB0aGUgcm93IHBvaW50cyBhY2NvcmRpbmcgdG8gdGhlaXIgY29zMiB2YWx1ZXMgdXNpbmcgdGhlIG9wdGlvbiBhbHBoYS5yb3cgPSAiY29zMiI6DQoNCmBgYHtyfQ0KIyBDaGFuZ2UgdGhlIHRyYW5zcGFyZW5jeSBieSBjb3MyIHZhbHVlcw0KZnZpel9jYV9yb3cocmVzLmNhLCByZXBlbD1UUlVFLCBhbHBoYS5yb3c9ImNvczIiKQ0KYGBgDQoNCkl04oCZcyBhbHNvIHBvc3NpYmxlIHRvIGNyZWF0ZSBhIGJhciBwbG90IG9mIHJvd3MgY29zMiB1c2luZyB0aGUgZnVuY3Rpb24gZnZpel9jb3MyKCkgKGluIGZhY3RvZXh0cmEpOg0KYGBge3J9DQo/ZnZpel9jb3MyDQpgYGANCg0KYGBge3J9DQojIENvczIgb2Ygcm93cyBvbiBEaW0uMSBhbmQgRGltLjINCmZ2aXpfY29zMihyZXMuY2EsIGNob2ljZSA9ICJyb3ciLCBheGVzID0gMToyLCByZXBlbD1UUlVFLCB0b3A9MTUpICMgc2hvdyBvbmx5IHRvcCAxNQ0KYGBgDQoNCg0KIyMjIyMgQ29udHJpYnV0aW9ucyBvZiByb3dzIHRvIHRoZSBkaW1lbnNpb25zDQoNCmBgYHtyfQ0KaGVhZChyZXMuY2Ekcm93JGNvbnRyaWIpDQpgYGANClRoZSByb3cgdmFyaWFibGVzIHdpdGggdGhlIGxhcmdlciB2YWx1ZSwgY29udHJpYnV0ZSB0aGUgbW9zdCB0byB0aGUgZGVmaW5pdGlvbiBvZiB0aGUgZGltZW5zaW9ucy4NCg0KVGhlIGZ1bmN0aW9uIGZ2aXpfY29udHJpYigpIG9mIGZhY3RvZXh0cmEgcGFja2FnZSAgY2FuIGJlIHVzZWQgdG8gZHJhdyBhIGJhciBwbG90IG9mIHJvdyBjb250cmlidXRpb25zLiBJZiB5b3VyIGRhdGEgY29udGFpbnMgbWFueSByb3dzLCB5b3UgY2FuIGRlY2lkZSB0byBzaG93IG9ubHkgdGhlIHRvcCBjb250cmlidXRpbmcgcm93cy4gVGhlIFIgY29kZSBiZWxvdyBzaG93cyB0aGUgdG9wIDEwIHJvd3MgY29udHJpYnV0aW5nIHRvIHRoZSBkaW1lbnNpb25zOg0KDQpgYGB7cn0NCiMgQmFyIHBsb3Qgb2YgdGhlIGNvbnRyaWJ1dGlvbnMgb2Ygcm93cyB0byBkaW1lbnNpb24gMQ0KZnZpel9jb250cmliKHJlcy5jYSwgY2hvaWNlID0gInJvdyIsIGF4ZXMgPSAxLCB0b3AgPSAxNSkNCmBgYA0KDQpUaGUgdG90YWwgY29udHJpYnV0aW9uIHRvIGRpbWVuc2lvbiAxIGFuZCAyIGNhbiBiZSBvYnRhaW5lZCBhcyBmb2xsb3c6DQpgYGB7cn0NCmZ2aXpfY29udHJpYihyZXMuY2EsIGNob2ljZSA9ICJyb3ciLCBheGVzID0gMToyLCB0b3AgPSAxNSkNCmBgYA0KVGhlIHJvd3MgIlJvYWQgYWNjaWRlbnRzIiwgIlN1aWNpZGVzIiwgIk90aGVyIGFjY2lkZW50cyIgYXJlIHRoZSBtb3N0IGltcG9ydGFudCBpbiB0aGUgZGVmaW5pdGlvbiBvZiB0aGUgZmlyc3QgZGltZW5zaW9uDQoNCmBgYHtyfQ0KIyBDb250cmlidXRpb25zIG9mIHJvd3MgdG8gZGltZW5zaW9uIDINCmZ2aXpfY29udHJpYihyZXMuY2EsIGNob2ljZSA9ICJyb3ciLCBheGVzID0gMiwgdG9wID0gMTUpDQpgYGANCg0KVGhlIG1vc3QgaW1wb3J0YW50IChvciwgY29udHJpYnV0aW5nKSByb3cgcG9pbnRzIGNhbiBiZSBoaWdobGlnaHRlZCBvbiB0aGUgcGxvdCBvZiByb3cgcG9pbnRzIGFzIGZvbGxvd3M6DQoNCmBgYHtyfQ0KZnZpel9jYV9yb3cocmVzLmNhLCBjb2wucm93ID0gImNvbnRyaWIiLA0KICAgICAgICAgICAgIGdyYWRpZW50LmNvbHMgPSBjKCIjMDBBRkJCIiwgIiNFN0I4MDAiLCAiI0ZDNEUwNyIpLCANCiAgICAgICAgICAgICByZXBlbCA9IFRSVUUpDQpgYGANCg0KTm90ZSB0aGF0LCBpdOKAmXMgYWxzbyBwb3NzaWJsZSB0byBjb250cm9sIHRoZSB0cmFuc3BhcmVuY3kgb2Ygcm93IHBvaW50cyBhY2NvcmRpbmcgdG8gdGhlaXIgY29udHJpYnV0aW9uIHZhbHVlcyB1c2luZyB0aGUgb3B0aW9uIGFscGhhLnJvdyA9ICJjb250cmliIiwgYXMgc2hvd24gYmVsb3c6DQpgYGB7cn0NCiMgQ2hhbmdlIHRoZSB0cmFuc3BhcmVuY3kgYnkgY29udHJpYiB2YWx1ZXMNCmZ2aXpfY2Ffcm93KHJlcy5jYSwgYWxwaGEucm93PSJjb250cmliIiwNCiAgICAgICAgICAgICByZXBlbCA9IFRSVUUpDQpgYGANCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCiMjIyMgQ29sdW1uIGFuYWx5c2lzDQpgYGB7cn0NCiNoZWFkKHJlcy5jYSRjb2wpDQojIE91dHB1dCB0byBsb25nIHRvIHZpc3VhbGl6ZQ0KYGBgDQoNCiMjIyMjIENvb3JkaW5hdGVzIG9mIGNvbHVtbiBwb2ludHMNCg0KYGBge3J9DQpoZWFkKHJlcy5jYSRjb2wkY29vcmQpICAjIGNvb3JkaW5hdGVzIG9mIHRoZSBjb2x1bW4gcG9pbnRzIChpLmUuIGFnZSByYW5nZXMpIGluIHRoZSBuZXcgZGltZW5zaW9ucw0KYGBgDQoNCmBgYHtyfQ0KIyB2aXN1YWxpemUgb25seSBjb2wgcG9pbnRzDQpmdml6X2NhX2NvbChyZXMuY2EsIHJlcGVsID0gVFJVRSkgDQpgYGANClRoZSBwbG90IGFib3ZlIHNob3dzIHRoZSByZWxhdGlvbnNoaXBzIGJldHdlZW4gY29sdW1uIHBvaW50czoNCg0KUm93cyB3aXRoIGEgc2ltaWxhciBwcm9maWxlIGFyZSBncm91cGVkIHRvZ2V0aGVyLg0KTmVnYXRpdmVseSBjb3JyZWxhdGVkIHJvd3MgYXJlIHBvc2l0aW9uZWQgb24gb3Bwb3NpdGUgc2lkZXMgb2YgdGhlIHBsb3Qgb3JpZ2luIChvcHBvc2VkIHF1YWRyYW50cykuDQpUaGUgZGlzdGFuY2UgYmV0d2VlbiByb3cgcG9pbnRzIGFuZCB0aGUgb3JpZ2luIG1lYXN1cmVzIHRoZSBxdWFsaXR5IG9mIHRoZSByb3cgcG9pbnRzIG9uIHRoZSBmYWN0b3IgbWFwLiBSb3cgcG9pbnRzIHRoYXQgYXJlIGF3YXkgZnJvbSB0aGUgb3JpZ2luIGFyZSB3ZWxsIHJlcHJlc2VudGVkIG9uIHRoZSBmYWN0b3IgbWFwLg0KDQojIyMjIyBRdWFsaXR5IG9mIHJlcHJlc2VudGF0aW9uIG9mIGNvbHVtbnMNCg0KVGhlIHJlc3VsdCBvZiB0aGUgYW5hbHlzaXMgc2hvd3MgdGhhdCwgdGhlIGNvbnRpbmdlbmN5IHRhYmxlIGhhcyBiZWVuIHN1Y2Nlc3NmdWxseSByZXByZXNlbnRlZCBpbiBsb3cgZGltZW5zaW9uIHNwYWNlIHVzaW5nIGNvcnJlc3BvbmRlbmNlIGFuYWx5c2lzLiBUaGUgdHdvIGRpbWVuc2lvbnMgMSBhbmQgMiBhcmUgc3VmZmljaWVudCB0byByZXRhaW4gOTAlIG9mIHRoZSB0b3RhbCBpbmVydGlhICh2YXJpYXRpb24pIGNvbnRhaW5lZCBpbiB0aGUgZGF0YS4NCg0KSG93ZXZlciwgbm90IGFsbCB0aGUgcG9pbnRzIGFyZSBlcXVhbGx5IHdlbGwgZGlzcGxheWVkIGluIHRoZSB0d28gZGltZW5zaW9ucy4NCg0KVGhlIHF1YWxpdHkgb2YgcmVwcmVzZW50YXRpb24gb2YgdGhlIHJvd3Mgb24gdGhlIGZhY3RvciBtYXAgaXMgY2FsbGVkIHRoZSBzcXVhcmVkIGNvc2luZSAoY29zMikgb3IgdGhlIHNxdWFyZWQgY29ycmVsYXRpb25zLg0KDQpUaGUgY29zMiBtZWFzdXJlcyB0aGUgZGVncmVlIG9mIGFzc29jaWF0aW9uIGJldHdlZW4gcm93cy9jb2x1bW5zIGFuZCBhIHBhcnRpY3VsYXIgYXhpcy4gVGhlIGNvczIgb2Ygcm93IHBvaW50cyBjYW4gYmUgZXh0cmFjdGVkIGFzIGZvbGxvdzogDQoNCmBgYHtyfQ0KcmVzLmNhJGNvbCRjb3MyICMgcXVhbGl0eSBvZiByZXByZXNlbnRhdGlvbiBvZiBmaXJzdCAzIGNvbCBwb2ludHMNCmBgYA0KVGhlIHZhbHVlcyBvZiB0aGUgY29zMiBhcmUgY29tcHJpc2VkIGJldHdlZW4gMCBhbmQgMS4gVGhlIHN1bSBvZiB0aGUgY29zMiBmb3Igcm93cyBvbiBhbGwgdGhlIENBIGRpbWVuc2lvbnMgaXMgZXF1YWwgdG8gb25lLg0KDQpUaGUgcXVhbGl0eSBvZiByZXByZXNlbnRhdGlvbiBvZiBhIHJvdyBvciBjb2x1bW4gaW4gbiBkaW1lbnNpb25zIGlzIHNpbXBseSB0aGUgc3VtIG9mIHRoZSBzcXVhcmVkIGNvc2luZSBvZiB0aGF0IHJvdyBvciBjb2x1bW4gb3ZlciB0aGUgbiBkaW1lbnNpb25zLg0KDQpJZiBhIHJvdyBpdGVtIGlzIHdlbGwgcmVwcmVzZW50ZWQgYnkgdHdvIGRpbWVuc2lvbnMsIHRoZSBzdW0gb2YgdGhlIGNvczIgaXMgY2xvc2VkIHRvIG9uZS4gRm9yIHNvbWUgb2YgdGhlIHJvdyBpdGVtcywgbW9yZSB0aGFuIDIgZGltZW5zaW9ucyBhcmUgcmVxdWlyZWQgdG8gcGVyZmVjdGx5IHJlcHJlc2VudCB0aGUgZGF0YS4NCg0KSXTigJlzIHBvc3NpYmxlIHRvIGNvbG9yIHJvdyBwb2ludHMgYnkgdGhlaXIgY29zMiB2YWx1ZXMgdXNpbmcgdGhlIGFyZ3VtZW50IGNvbC5yb3cgPSAiY29zMiIuIFRoaXMgcHJvZHVjZXMgYSBncmFkaWVudCBjb2xvcnMsIHdoaWNoIGNhbiBiZSBjdXN0b21pemVkIHVzaW5nIHRoZSBhcmd1bWVudCBncmFkaWVudC5jb2xzLiBGb3IgaW5zdGFuY2UsIGdyYWRpZW50LmNvbHMgPSBjKCJ3aGl0ZSIsICJibHVlIiwgInJlZCIpIG1lYW5zIHRoYXQ6DQoNCnZhcmlhYmxlcyB3aXRoIGxvdyBjb3MyIHZhbHVlcyB3aWxsIGJlIGNvbG9yZWQgaW4g4oCcd2hpdGXigJ0NCnZhcmlhYmxlcyB3aXRoIG1pZCBjb3MyIHZhbHVlcyB3aWxsIGJlIGNvbG9yZWQgaW4g4oCcYmx1ZeKAnQ0KdmFyaWFibGVzIHdpdGggaGlnaCBjb3MyIHZhbHVlcyB3aWxsIGJlIGNvbG9yZWQgaW4gcmVkDQpgYGB7cn0NCiMgQ29sb3IgYnkgY29zMiB2YWx1ZXM6IHF1YWxpdHkgb24gdGhlIGZhY3RvciBtYXANCmZ2aXpfY2FfY29sKHJlcy5jYSwgY29sLmNvbCA9ICJjb3MyIiwNCiAgICAgICAgICAgICBncmFkaWVudC5jb2xzID0gYygid2hpdGUiLCAiYmx1ZSIsICJyZWQiKSwgDQogICAgICAgICAgICAgcmVwZWwgPSBUUlVFKQ0KYGBgDQpOb3RlIHRoYXQsIGl04oCZcyBhbHNvIHBvc3NpYmxlIHRvIGNoYW5nZSB0aGUgdHJhbnNwYXJlbmN5IG9mIHRoZSByb3cgcG9pbnRzIGFjY29yZGluZyB0byB0aGVpciBjb3MyIHZhbHVlcyB1c2luZyB0aGUgb3B0aW9uIGFscGhhLnJvdyA9ICJjb3MyIi4gRm9yIGV4YW1wbGUsIHR5cGUgdGhpczoNCg0KYGBge3J9DQojIENoYW5nZSB0aGUgdHJhbnNwYXJlbmN5IGJ5IGNvczIgdmFsdWVzDQpmdml6X2NhX2NvbChyZXMuY2EsIHJlcGVsPVRSVUUsIGFscGhhLmNvbCA9ImNvczIiKQ0KYGBgDQoNCkl04oCZcyBhbHNvIHBvc3NpYmxlIHRvIGNyZWF0ZSBhIGJhciBwbG90IG9mIGNvbHMgY29zMiB1c2luZyB0aGUgZnVuY3Rpb24gZnZpel9jb3MyKCkgKGluIGZhY3RvZXh0cmEpOg0KDQpgYGB7cn0NCiMgQ29zMiBvZiByb3dzIG9uIERpbS4xIGFuZCBEaW0uMg0KZnZpel9jb3MyKHJlcy5jYSwgY2hvaWNlID0gImNvbCIsIGF4ZXMgPSAxOjIsIHJlcGVsPVRSVUUsIHRvcD0xNSkgIyBzaG93IG9ubHkgdG9wIDE1DQpgYGANClJlY2FsbCB0aGF0LCB0aGUgdmFsdWUgb2YgdGhlIGNvczIgaXMgYmV0d2VlbiAwIGFuZCAxLiBBIGNvczIgY2xvc2VkIHRvIDEgY29ycmVzcG9uZHMgdG8gYSBjb2x1bW4vcm93IHZhcmlhYmxlcyB0aGF0IGFyZSB3ZWxsIHJlcHJlc2VudGVkIG9uIHRoZSBmYWN0b3IgbWFwLg0KDQojIyMjIyBDb250cmlidXRpb25zIG9mIGNvbHMgdG8gdGhlIGRpbWVuc2lvbnMNCg0KYGBge3J9DQpoZWFkKHJlcy5jYSRjb2wkY29udHJpYikNCmBgYA0KVGhlIHJvdyB2YXJpYWJsZXMgd2l0aCB0aGUgbGFyZ2VyIHZhbHVlLCBjb250cmlidXRlIHRoZSBtb3N0IHRvIHRoZSBkZWZpbml0aW9uIG9mIHRoZSBkaW1lbnNpb25zLg0KDQpUaGUgZnVuY3Rpb24gZnZpel9jb250cmliKCkgW2ZhY3RvZXh0cmEgcGFja2FnZV0gY2FuIGJlIHVzZWQgdG8gZHJhdyBhIGJhciBwbG90IG9mIHJvdyBjb250cmlidXRpb25zLiBJZiB5b3VyIGRhdGEgY29udGFpbnMgbWFueSByb3dzLCB5b3UgY2FuIGRlY2lkZSB0byBzaG93IG9ubHkgdGhlIHRvcCBjb250cmlidXRpbmcgcm93cy4gVGhlIFIgY29kZSBiZWxvdyBzaG93cyB0aGUgdG9wIDEwIHJvd3MgY29udHJpYnV0aW5nIHRvIHRoZSBkaW1lbnNpb25zOg0KDQpgYGB7cn0NCiMgQ29udHJpYnV0aW9ucyBvZiBjb2xzIHRvIGRpbWVuc2lvbiAxDQpmdml6X2NvbnRyaWIocmVzLmNhLCBjaG9pY2UgPSAiY29sIiwgYXhlcyA9IDEpDQpgYGANCg0KVGhlIHRvdGFsIGNvbnRyaWJ1dGlvbiB0byBkaW1lbnNpb24gMSBhbmQgMiBjYW4gYmUgb2J0YWluZWQgYXMgZm9sbG93Og0KYGBge3J9DQpmdml6X2NvbnRyaWIocmVzLmNhLCBjaG9pY2UgPSAiY29sIiwgYXhlcyA9IDE6MikNCmBgYA0KVGhlIHJvd3MgIlJvYWQgYWNjaWRlbnRzIiwgIlN1aWNpZGVzIiwgIk90aGVyIGFjY2lkZW50cyIgYXJlIHRoZSBtb3N0IGltcG9ydGFudCBpbiB0aGUgZGVmaW5pdGlvbiBvZiB0aGUgZmlyc3QgZGltZW5zaW9uDQoNCmBgYHtyfQ0KIyBDb250cmlidXRpb25zIG9mIGNvbHMgdG8gZGltZW5zaW9uIDINCmZ2aXpfY29udHJpYihyZXMuY2EsIGNob2ljZSA9ICJjb2wiLCBheGVzID0gMiwgdG9wID0gMTApDQpgYGANCg0KVGhlIG1vc3QgaW1wb3J0YW50IChvciwgY29udHJpYnV0aW5nKSByb3cgcG9pbnRzIGNhbiBiZSBoaWdobGlnaHRlZCBvbiB0aGUgYmlwbG90IGFzIGZvbGxvd3M6DQoNCmBgYHtyfQ0KZnZpel9jYV9jb2wocmVzLmNhLCBjb2wuY29sID0gICJjb250cmliIiwNCiAgICAgICAgICAgICBncmFkaWVudC5jb2xzID0gYygiIzAwQUZCQiIsICIjRTdCODAwIiwgIiNGQzRFMDciKSwgDQogICAgICAgICAgICAgcmVwZWwgPSBUUlVFKQ0KYGBgDQoNCk5vdGUgdGhhdCwgaXTigJlzIGFsc28gcG9zc2libGUgdG8gY29udHJvbCB0aGUgdHJhbnNwYXJlbmN5IG9mIHJvdyBwb2ludHMgYWNjb3JkaW5nIHRvIHRoZWlyIGNvbnRyaWJ1dGlvbiB2YWx1ZXMgdXNpbmcgdGhlIG9wdGlvbiBhbHBoYS5yb3cgPSAiY29udHJpYiIsIGFzIHNob3duIGJlbG93Og0KYGBge3J9DQojIENoYW5nZSB0aGUgdHJhbnNwYXJlbmN5IGJ5IGNvbnRyaWIgdmFsdWVzDQpmdml6X2NhX2NvbChyZXMuY2EsIGFscGhhLmNvbD0iY29udHJpYiIsDQogICAgICAgICAgICAgcmVwZWwgPSBUUlVFKQ0KYGBgDQo=</div>
 
 
 
