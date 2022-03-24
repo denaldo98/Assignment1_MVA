@@ -14,9 +14,9 @@ output:
 ```
 
 ```{r}
-# load library
+# load libraries
 library(FactoMineR) # for CA
-library(factoextra) # for bettet visualizations
+library(factoextra) # for ggplot visualizations
 ```
 
 
@@ -28,11 +28,10 @@ data("mortality")
 #### Exploratory data analysis
 ```{r}
 # inspect the dataset
-#mortality
 head(mortality) # first rows
 ```
 
-Let's see a brief summary of the main statistichs of the dataset
+Let's see a brief summary of the main statistics of the dataset
 
 ```{r}
 summary(mortality)
@@ -42,14 +41,11 @@ summary(mortality)
 As we can see, the "mortality" dataset is a data frame with 62 rows (the different causes of death) and 18 
 columns. Each column corresponds to an age interval (15-24, 25-34, 35-44, 45-54, 55-64, 65-74, 
 75-84, 85-94, 95 and more) in a year. The first 9 columns correspond to data in 1979 and the 9 
-last columns to data in 2006. In each cell, the count of deaths for a cause of death in an ageninterval (in a year) is given.
+last columns to data in 2006. In each cell, the count of deaths for a cause of death in an age interval (in a year) is given.
 
 The first 9 cols correspond to data in 1979 and the 9 last columns correspond to data in 2006.
 
-We will perform PCA considering only the data corresponding to 1979 (the first 9 columns). <\br>
-
-For this exercise, you should perform a CA considering only the data corresponding to 1979 (the 
-first nine columns), and answer the following questions:
+We will perform PCA considering only the data corresponding to 1979 (the first 9 columns) and answer the following questions:
 - Interpret the first factorial plane (dimensions 1 and 2)
 - Which percentage of variability is explained by the first two dimensions?
 - Study the similarities between age groups according to causes of death
@@ -60,18 +56,13 @@ first nine columns), and answer the following questions:
 component?
 You must justify all the steps you take. You must also contextualize all results
 
-
-
 ## CA on the first 8 columns
 ```{r}
-# perform CA on the first 8 columns
-res.ca <- CA(mortality[, 1:8],graph= FALSE) # don't show CA graph
+res.ca <- CA(mortality[, 1:8], graph = FALSE) # don't show CA graph
 ```
 
-Due to the high number of rows, the CA graph is very difficult to interpret; we'll try to visualize things in a smarter way.
+Due to the high number of row points , the CA graph (factor map) is obviously very difficult to interpret by considering all the points, that's why we'll try to visualize things in a smarter way.
 At first, let's see a summary of the performed CA to obtain some first insights.
-
-
 
 ```{r}
 #summary(res.ca)
@@ -79,46 +70,52 @@ At first, let's see a summary of the performed CA to obtain some first insights.
 
 
 ```{r}
+# obtained  CA object
 res.ca
 ```
 ### Visualization and Interpretation
 
-Let's now analyze the ouptuts of the CA
+Let's now analyze the ouputss of the CA in details
 
 #### Eigenvalues
+
+The first aspect we typically look at in FA methods are eigenvalues, i.e. we try to understand how the newly created axes/dimensions are able to capture the deviation from independence of the original contingency table, that is how the overall intertia of our cloud of points is explained by the new axes.
+
 ```{r}
+# eigenvalues and explained inertia
 res.ca$eig
 ```
 ##### Scree Plot
-Let's graphically visualize the obtained eigenvalues by looking at the Scree Plot
+To better interpret the eigenvalus, let's graphically visualize the expalined variance by means of a Scree Plot
 
 ```{r}
 fviz_screeplot(res.ca, addlabels = TRUE, ylim = c(0, 65))
 ```
-From the graph above and from the values seen before, we can easily conclude that the first 2 dimensions are enough to describe the entire cloud of points, since they capture more than 90% of the total inertia of the cloud of points, i.e. they capture the largest percentage of the deviation from independence of our dataset. 
-Therefore, an analysis on the plane consisting of the first 2 dimensions would be sufficient to extract conclusions from the performed CA. <br> <br>
-
+**Which percentage of variability is explained by the first two dimensions?** <\br>
+From the graph above and from the values seen before, we can easily conclude that the first 2 explain 91.31574% of the variability of the entire cloud of pounts, therefore we can conclude that the first two dimensions are enough to describe the whole contingency table,since they capture a very large percentage of the deviation from independence of our dataset. <\br> 
+Therefore, an analysis of the plane consisting of the first 2 dimensions would be sufficient to extract conclusions from the performed CA.
 
 #### Plots
 Let's now try to build some meaningful plots, since the full CA plot contains overlapping points
 
 ```{r}
-??plot.CA 
+?plot.CA 
 ```
 
-```{r}
-#plot.CA(res.ca, cex=0.7, shadowtext = "True", label=c("col"))
-```
 
-The function fviz_ca_biplot() of the package "factoextra" can be used to draw the biplot of rows and columns variables, i.e. to provide a simultaneous representation of rows and columns
+
+The function fviz_ca_biplot() of the package "factoextra" can be used to draw the biplot of rows and columns variables, i.e. to provide a simultaneous representation of rows and columns.
+
 ```{r}
 ?fviz_ca_biplot # provides ggplot-based elegant visualizations of CA outputs
 ```
 
 ```{r}
-options(ggrepel.max.overlaps = 6) # max number of allowed overlaps (for all the current session) 
-fviz_ca_biplot(res.ca, repel=TRUE) # repel= TRUE to avoid text overlapping
+options(ggrepel.max.overlaps = 6) # max number of allowed overlaps  
+fviz_ca_biplot(res.ca, repel = TRUE) # repel= TRUE to avoid text overlapping
 ```
+The graph above represents the whole row points and column points. As we can see, due to the presence of a lot of row points and due to overlapping labels, the graph is pretty difficult to be read.
+
 Rows are represented as blue points and cols as red triangles.
 The distance between any row points or column points gives a measure of their similarity (or dissimilarity). Row points with similar profile are closed on the factor map. The same holds true for column points.
 
@@ -128,19 +125,55 @@ We can see that older people share a lot of causes of death.
 Only age ranges 15-24, 25-34, 35-44, 45-54 are far from the origin
 
 #####  Interpretation of the 1st factorial plane
-Most of the deviation from independence comes from the separation of the young age ranges, i.e. 15-24, 25-34, 35-44 and the rest. This is well captured by the 1st dimension which separates young people (on the right side) from old people (on the left of the origin).The 2nd dimension separates the age-range 15.24(in the top) from the rest of the ranges: in particular it shows an opposition of the that range with the range 45-54 and 55-64.
-The position of each cause of death shows the range of age it affects more.
-For instance, we can see that causes of death in the first quadrant of the biplot are mostly related to young age-ranges.
 
-Since the previous biplot is pretty difficult to interpret, we show only the rows contributing more to the first 2 dim
+
+
+In order to get a useful interpretation of the 1st factorial plane seen above, we decide to show only the top 15 row points contributing more to the first 2 dimensions, while we add some transparency to the other points. In obtain the resulting graph it is enough to use the plot.CA function as below, where we use also the parameter cex to reduce the size of the labels
+
 ```{r}
-#plot.CA(res.ca,selectRow ="contrib ",selectCol = "contrib 5") 
-#fviz_ca_biplot(res.ca, repel=TRUE, select.row = list(contrib = 8))
-plot.CA(res.ca, selectRow ="contrib 10", shadow=TRUE, cex=0.7, unselect = 0.92, autoLab="auto")
+options(ggrepel.max.overlaps = 15) # max number of allowed overlaps  
+plot.CA(res.ca, selectRow ="contrib 10", cex=0.65, unselect = 0.92, graph.type = "ggplot")
 ```
+Let's now try to answer to the following questions:
+
+
+**Interpret the first factorial plane (dimensions 1 and 2)** 
+
+
+
+**Study the similarities between age groups according to causes of death** 
+
+
+
+**Study the similarities between causes of death according to age groups** 
+
+
+
+**Which are the main associations between age groups and causes of death?**
+
+
+
+The first factorial plane shows that most of the deviation from independence comes from the separation of the young age ranges, i.e. 15-24, 25-34, 35-44 and the rest. <\br>
+
+In particular, this is very well captured by the 1st dimension which separates young people (on the right side) from old people (on the left of the origin): it puts an ascending order to the ages from the right to the left of the axes.<\br>
+
+The 2nd dimension separates the age-range 15-24(in the top) from the rest of the ranges: in particular it shows an opposition of that range with the range 45-54 and 55-64, that are the middle age ranges.
+This 2nd dimension also puts in opposition tumour related diseases and "Chronic liver disease" with "Road accidents" (in the top of the 2nd dimension) and other types of diseases, such as heart diseases, "Cerebrovascular disease", "Other ill-defined symptoms and conditions", "Other accidents"<\br>
+
+The position of each cause of death in the first factorial plane shows the ranges of age it affects more. 
+For instance, we can immediately see that causes of death in the first quadrant of the plot are mostly related to young age-ranges: for instance "Road accidents" affects more people in the range 15-24 and then 25-34, as expected, since young people are typically  more reckless when driving. 
+"Events of undetermined intention", "Other accidents" and "Suicides" are close to the ranges 25-34 and 35-44.
+<\br> While "Other ill-defined symptoms and conditions", "Other heart disease", "Cerebrovascular disease" affects more the older people in the ranges 85-94 and 75-84: again this is an expected behaviour. <\br>
+
+In the lower part of the graph we have all the diseas related to the the middle age ranges, i.e. 35-44, 45-54, 55,64 and also 65-75: the typical diseases for this categories are various types of tumours and "Chronic liver disease". <\br>
+
+Overall, what we can say is that the 1st factorial plane is very able to cluster the age-ranges based on the types of disease most frequent for each range and, similarly, it is able to group together causes of deaths that regards specific ages and, finally, it is able to create meaningful associations between age groups and the diseas that typically affet them.
+
 
 
 #### Row analysis
+
+Let's now briefly analyze separately the row points.
 ```{r}
 #head(res.ca$row)
 # Output to long to visualize
@@ -149,26 +182,28 @@ plot.CA(res.ca, selectRow ="contrib 10", shadow=TRUE, cex=0.7, unselect = 0.92, 
 ##### Coordinates of row points
 
 ```{r}
-head(res.ca$row$coord)  # coordinates of the row points (i.e. causes od death) in the new dimensions
+head(res.ca$row$coord)  # coordinates of the row points (i.e. causes of death) in the new dimensions
 ```
 
 ```{r}
 # visualize only row points
-fviz_ca_row(res.ca, repel = TRUE, col.row="steelblue", shape.row = 15) # change shape and color of the row points
+options(ggrepel.max.overlaps = 15) # max number of allowed overlaps 
+plot.CA(res.ca, selectRow ="contrib 10", cex=0.65, unselect = 0.92, invisible = "col", graph.type = "ggplot")
 ```
 The plot above shows the relationships between row points:
-
 Rows with a similar profile are grouped together.
 Negatively correlated rows are positioned on opposite sides of the plot origin (opposed quadrants).
 The distance between row points and the origin measures the quality of the row points on the factor map. Row points that are away from the origin are well represented on the factor map.
+<\br>
+This plot shows again 3 main clusters of diseases: on the 1st quadrant we have a group of diseases regarding younger people, on the bottom we have the diseases regarding middle age people and on the 2nd quadrant we have another group of diseases regarding the older people.
 
 ##### Quality of representation of rows
 
-The result of the analysis shows that, the contingency table has been successfully represented in low dimension space using correspondence analysis. The two dimensions 1 and 2 are sufficient to retain more than 90% of the total inertia (variation) contained in the data.
+The result of the analysis shows that the contingency table has been successfully represented in two dimensional space using correspondence analysis. The first two dimensions are sufficient to retain more than 90% of the total inertia (variation) contained in the data.
 
 However, not all the points are equally well displayed in the two dimensions.
 
-The quality of representation of the rows on the new dimensions is called the squared cosine (cos2) or the squared correlations.
+The quality of representation of the rows on the new dimensions is described by the squared cosine (cos2) or the squared correlations.
 
 The cos2 measures the degree of association between rows/columns and a particular axis. The cos2 of row points can be extracted as follow: 
 
