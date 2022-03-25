@@ -18,6 +18,14 @@ library(HSAUR3)
 library(readr)
 ```
 
+
+```{r}
+b = read_csv("cars2004.csv")
+b
+```
+
+
+
 Next, we retrive the data:
 ```{r}
 bicing = read_csv("cars2004.csv")
@@ -32,8 +40,8 @@ kable_classic(full_width = F, html_font = "Cambria")
 
 ```
 
-
-
+The dataset is composed by 7 binary categorical variables and 11 continuous variables.
+Given that we are trying to apply the PCA algorithm to the dataset, which works with continuous data, the binary variables will be treated as supplementary qualitative variables, specifically, we will use them to identify specific group of data points.
 Now it can be useful to visualize some selected rows and columns:
 
 ```{r}
@@ -101,8 +109,9 @@ kable_classic(full_width = F, html_font = "Cambria")
 ```
 
 The goal of this task is to apply PCA to the given dataset.
-However we observe that seven features are of binary type, while PCA fit naturally with continuous variable.
+However as stated before, we observe that seven features are of binary type, while PCA fit naturally with continuous variable.
 Therefore we decide to discard the binary variables and continue working only with the continuous one.
+We will retrieve later the categorical variables to distinguish the data points in different classes.
 
 ```{r}
 
@@ -113,8 +122,8 @@ bicing <- bicing[keeps]
 
 
 It is useful to visualize the data, utilizing for example a scatter plot.
-However our data has several categorical variables, defining the type to which each car belongs to.
-Therefore, before plotting the scatterplot, we exclude such variables, focusing on the numerical one.
+Given the high dimensionality of the dataset, we needed some extra effort to obtain the scatter plot.
+Specifically we used the x11 functionalities to obtain an image with the right size to have a clear view of the scatter plot.
 Together with the scatterplot of the numerical variable, using the ggplot and GGally libraries, we can also compute the correlation matrix.
 
 ```{r}
@@ -128,9 +137,18 @@ ggpairs(bicing)
 Sys.sleep(10)
 ```
 ![Scatter-plot](scatterplot_fin.png)
+We can observe that some variables are highly correlated between each other.
+Is the case of the pairs Retail-Dealer,  HighwayMPG-CityMPG, and Cylinder-Engine which makes sense given the meaning of such variables in the context of the data:
+
+- Retail: Suggested retail price (US)
+- Dealer: Price to dealer (US)
+
+- CityMPG: City gas mileage
+- HighwayMPG: Highway gas mileage
+
 
 From the scatter plot, it seems like there are several outliers that needs to be handled in order to improve the quality of the dataset.
-LA FUNZIONE PRATICAMENTE GUARDA A TUTTE LE COLONNE CON VALORI NUMERICI E USANDO LA FUNZIONE BOXPLOT CHE RESTITUISCE LE STATISTICHE DEL DATASET, PRENDE I PUNTI CHE SONO FUORI DALL'INTERQUANTILE RANGE E LI METTE UGUALI A NA
+To delete such points we used a utility function, which for each column at the numerical values and via the boxplot.stats informations, it detects the points outside the interquartile range, defining them as NA points.
 ```{r}
 
 library(dplyr)
@@ -158,8 +176,6 @@ we use the keeps variable to avoid looking at the categorical variables.
 This has to be done because otherwise a lot of values in the categorical variable are identified as 'outliers' even though in such columns only the values 0 and 1 are assigned.
 
 ```{r}
-
-#keeps <- c("Retail", "Dealer", "Engine", "Cylinders", "Horsepower", "CityMPG", "HighwayMPG", "WheelBase", "Weight", "Length", "Width")
 
 print("Number of NA values in each column:")
 for(name in names(na_bicing)){
@@ -215,6 +231,7 @@ kable_classic(full_width = F, html_font = "Cambria")
 ```
 
 To see the effects that the elimination of the outliers has produced let's plot a box plot for each variable.
+It seems like some outliers are still present in the dataset, but the number is much smaller then before.
 
 ```{r}
 boxplot(na_bicing$Retail, na_bicing$Dealer, na_bicing$Engine,
@@ -237,7 +254,6 @@ Now that the pre-processing phase has been completed, we can start applying PCA 
 The first thing to observe is that the columns work on very different scales, therefore, it is necessary to extract the PCs from the correlation matrix R.
 So that we don't need to center the data set.
 
-
 ```{r}
 
 ### PCA
@@ -253,22 +269,18 @@ So we obtain the list of the coefficients defining the PCs: PC scores etc.
 str(bicing_pca)
 ```
 
-Now it is useful to observe the loading vector for the first PC
+Now it is useful to observe the loading vector for the first PC.
 
 ```{r}
 l1 <- bicing_pca$loadings[, 1]
+l1
 ```
-
-
-
 The vector has to be orthonormal, we can check this computing the dot product of the vector with itself:
 
 ```{r}
 l1%*%l1
 ```
-
-
-And now we can check that all the loading vectors are orthogonal between each other, computing the loading vector for the second PC and then appliyng the dot product with the loading vector computed above.
+And now we can check that all the loading vectors are orthogonal between each other, computing the loading vector for the second PC and then applying the dot product with the loading vector computed above.
 
 ```{r}
 l2 <- bicing_pca$loadings[, 2]
@@ -279,7 +291,7 @@ l1%*%l2
 
 ### Rescaled Coefficients
 
-Now it is useful to rescale the loadings, so that the coefficients for the most important components are larger than those for less important one.
+It's important to rescale the loadings, so that the coefficients of the most important components are larger than those of less important one.
 In order to rescale the loadings we use the standard deviations of the principal components.
 
 ```{r}
@@ -295,6 +307,9 @@ First we print the summary function, to obtain for each component it's standard 
 ```{r}
 summary(bicing_pca)
 ```
+We can observe that the first component explains alone a considerable proportion of the whole variability of the dataset (around 60%) and together with the second component the amount of explained variability rises to 76 %.
+This means that probably, we will be able to summarize the whole dataset using only the two obtained components.
+
 
 The plot for the proportion of variance explained
 
@@ -323,7 +338,6 @@ ylim=c(0,1),type='b')
 
 ### Choosing the number of components
 
-
 Now we should choose the number of components with which we want to explain our data.
 To do so it is useful to understand which are the components that retain the majority of the variability.
 A good graphical indicator is the screeplot, which plots the variance explaind by each component.
@@ -337,9 +351,11 @@ library(factoextra)
 ```{r}
 fviz_eig(bicing_pca, addlabels = TRUE, ylim = c(0, 70))
 ```
+As stated before, the first and the second component alone explain almost 80% of the variance, therefore, they are the main candidate to summarize the information of the other variables.
+When looking at the screeplot, it is important to look for elbows, which means a point after which the eigenvalues start decrease more slowly.
+As we can see from the plot, the elbow appears passing from the second to the third dimension.
 
-
-It is useful to use the get_pca_var() function, which provides a list of matrices containing all the results for the active variables (coordinates, correlation between variables and axes, squared cosine and contributions).
+It is useful to use the get_pca_var() function, which provides a list of matrices containing all the results for the active variables (coordinates, correlation between variables and axes, squared cosine and contributions) which we will then print.
 
 ```{r}
 var <- get_pca_var(bicing_pca)
@@ -349,13 +365,11 @@ var
 
 ### Loading Plot
 
-The correlation between a variable and a principal component (PC) is used as the coordinates of the variable on the PC. The representation of variables differs from the plot of the observations: The observations are represented by their projections, but the variables are represented by their correlations
-
-
+We can observe the loadings for each PC.
 
 ```{r}
 # Coordinates of variables
-head(var$coord, 4)
+head(var$coord, 11)
 ```
 
 Now we plot the correlation circle to show it better:
@@ -364,16 +378,17 @@ Now we plot the correlation circle to show it better:
 fviz_pca_var(bicing_pca, col.var = "black", labelsize = 2.5, repel = TRUE)
 ```
 
-The plot above is also known as variable correlation plots. It shows the relationships between all variables. It can be interpreted as follow:
+The plot above shows the relationships between all variables. It can be interpreted as follow:
 
 - Positively correlated variables are grouped together.
 
 - Negatively correlated variables are positioned on opposite sides of the plot origin (opposed quadrants).
 
-- The distance between variables and the origin measures the quality of the variables on the factor map. Variables that are away from the origin are well represented on the factor map.
+- The distance between variables and the origin measures the quality of the variables. Variables that are away from the origin are well represented on the plot.
+
+The plot confirms the highly correlation observed before in the scatter plot.
 
 #### Quality of representation
-
 
 The quality of representation of the variables on factor map is called cos2 (square cosine, squared coordinates).
 We can use the corrplot package to visualize the cos2
@@ -388,7 +403,7 @@ head(var$cos2, 4)
 library("corrplot")
 corrplot(var$cos2, is.corr=FALSE)
 ```
-
+As imagined, the first component is the best in representing the variables.
 It’s also possible to create a bar plot of variables cos2 using the function fviz_cos2
 
 ```{r}
@@ -406,7 +421,6 @@ For a given variable, the sum of the cos2 on all the principal components is equ
 If a variable is perfectly represented by only two principal components (Dim.1 & Dim.2), the sum of the cos2 on these two PCs is equal to one. In this case the variables will be positioned on the circle of correlations.
 
 For some of the variables, more than 2 components might be required to perfectly represent the data. In this case the variables are positioned inside the circle of correlations.
-
 
 It’s possible to color variables by their cos2 values using the argument col.var = "cos2".
 
@@ -445,7 +459,7 @@ It’s possible to use the function corrplot() to highlight the most contributin
 ```{r}
 corrplot(var$contrib, is.corr=FALSE)  
 ```
-
+As we can see all the variables contributes more or less in the same way to the first dimension, while for the other dimensions there are unbalanced contributions in determining the PCs.
 
 The function fviz_contrib() can be used to draw a bar plot of variable contributions.
 
@@ -464,7 +478,7 @@ fviz_contrib(bicing_pca, choice = "var", axes = 2, top = 10)
 The red dashed line on the graph above indicates the expected average contribution.
 For a given component, a variable with a contribution larger than this cutoff could be considered as important in contributing to the component.
 
-Now we can plot again the correlation circle, highlighting the most important variables.
+Now we can plot again the correlation circle, highlighting the most important variables for the first two dimensions.
 
 ```{r}
 fviz_pca_var(bicing_pca, col.var = "contrib",
@@ -500,21 +514,21 @@ Now we can try to visualize the scatter plot between the score of the PC1, toget
 
 ```{r}
 pc1.scores <- bicing_pca$scores[,1]
-plot(na_bicing$Width, pc1.scores)
+plot(na_bicing$WheelBase, pc1.scores)
 ```
+From the above plot it seems like the first PC manages to explain the considered variable, also if not perfectly defined, we can observe a linear relationship between the two.
 
-OSSERVAZIONI
 
-
-Now, given the scores of each entry of the dataset, it is possible to visualize the Score Plot, which shows clusters of athletes based on their similarity.
+Now, given the scores of each entry of the dataset, it is possible to visualize the Score Plot, which shows clusters of cars based on their similarity.
+First, we visualize the scores of the dataset.
 
 ```{r}
 rbind(bicing_pca$scores[,1], bicing_pca$scores[,2])
 ```
 
 Due to the large amount of data points at disposal, it would be impossible to label each point in the graph.
-Therefore, we can use the supplementary categorical variable, represented by the model type of the car, to color each point.
-Before doing so, it is necessary to collapse all the binary variable regarding the model type, in one labelling variable.
+Therefore, we can use the supplementary categorical variables, represented by the model type of the car, to color each point.
+Before doing so, it is necessary to collapse all the binary variables regarding the model type, in one labelling variable.
 
 
 ```{r}
@@ -551,14 +565,17 @@ for(i in 1:nrow(bicing_lab)){
     model <- c(model, "Pickup")
   
   }
-  else if(bicing_lab[i, "AWD"] == 1){
-    model <- c(model, "AWD")
-  
-  }
   else{
-  
-    model <- c(model, "RWD")
+    model <- c(model, "Other")
   }
+  #else if(bicing_lab[i, "AWD"] == 1){
+   # model <- c(model, "AWD")
+  
+  #}
+  #else{
+  
+   # model <- c(model, "RWD")
+  #}
 }
 
 bicing_lab["Model"] <- model
@@ -573,29 +590,31 @@ fviz_pca_ind(bicing_pca,
                          "#E6AB02", "#666666", "#7570B3"),
              addEllipses = FALSE, # Concentration ellipses
              legend.title = "Models"
-             )
+             ) + scale_shape_manual(values=c(0, 6, 12, 18, 24, 19 ,25)) #change shapes
 ```
-
+As we can observe the data are quite spread along each directions.
+The most significant cluster that can be observed is the one representing the cars of the Minivan type in the bottom-right corner.
 
 ### Bi-plot
 
-Finally we draw the biplot, which the combination of the PCA score plot, together with the loading plot.
+Finally we draw the biplot, which is the combination of the PCA score plot, together with the loading plot.
 
 
 ```{r}
-
-#Retail	Dealer	Engine	Cylinders	Horsepower	CityMPG	HighwayMPG	Weight	WheelBase	Length	Width
 
 
 fviz_pca_biplot(bicing_pca, 
                 col.ind = bicing_lab$Model, palette = "jco", 
                 addEllipses = FALSE, label = "var",
                 col.var = "black", repel = TRUE,
-                legend.title = "Models") 
+                legend.title = "Models")+ scale_shape_manual(values=c(0, 6, 12, 18, 24, 19 ,25))
 ```
+As we can see the Minivan type of cars are depicted together with the Length, Wheelbase and Width variables, which make sense considering that this type of car is the 
+one having the greatest values regarding these attributes.
+Also the SUV type of cars are partially together in a cluster, and are near the Engine, Cylinders and Horsepower variables, which is coherent given the kind of car.
 
-
-Let's another possible version of the biplot
+Let's see another possible version of the biplot in which we are trying to color both the individuals and the groups.
+Specifically the groups are colored based on their contributions.
 
 ```{r}
 fviz_pca_biplot(bicing_pca, 
@@ -608,7 +627,6 @@ fviz_pca_biplot(bicing_pca,
                 # Variables
                 alpha.var ="contrib", col.var = "contrib",
                 gradient.cols = "RdYlBu",
-                
                 legend.title = list(fill = "Models", color = "Contrib",
                                     alpha = "Contrib")
                 )
