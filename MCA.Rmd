@@ -11,6 +11,7 @@ output:
 install.packages(c("FactoMineR", "factoextra"))
 library(FactoMineR)
 library(factoextra)
+library(dplyr)
 ```
 
 ```{r}
@@ -34,6 +35,7 @@ Each row of the dataset represents a rental with information such as:
 ```{r}
 summary(bicing)
 ```
+
 About our variables' type, we have categorical variables:
 * Start.weekday, Weekend, Nightout, Period
 * Metro.staion.S, Metro.station.E, Metro.sORe and Metro.sANDe
@@ -42,48 +44,23 @@ About our variables' type, we have categorical variables:
 * Weather.main
 * Downtown.S and Downtown.E
 
-Let's put these in a new matrix and apply MCA:
+As we are not using all of them as active variables, we will create a new dataframe only with relevant columns:
 ```{r}
-#bicing_mca = MCA(bicing, ncp=10, quali.sup=c(7,32), level.ventil=0.01)
+#X = bicing[c("Start.weekday", "Weekend", "Nightout", "Period",   "Metro.station.S", "Metro.station.E", "Metro.sORe", "Metro.sANDe"        , "Downtown.S", "Downtown.E", "Loop", "Account.type", "Weather.main")]
 
-X = bicing[c("Start.weekday", "Weekend", "Nightout", "Period",   "Metro.station.S", "Metro.station.E", "Metro.sORe", "Metro.sANDe"        , "Downtown.S", "Downtown.E", "Loop", "Account.type", "Weather.main")]
+#bicing_mca = MCA(X, ncp=10, quali.sup=c(1, 4, 6, 10, 12, 13))
 
-bicing_mca = MCA(X, ncp=10, quali.sup=c(1, 4, 6, 10, 12, 13))
+X2 = bicing[c("Start.weekday", "Period", "Metro.station.E", "Downtown.E",  "Account.type", "Weather.main", "Month", "Temperature")]
+
+bicing_mca = MCA(X2, ncp=10, quanti.sup=7:8, level.ventil=0.01)
 ```
-
-
-```
-Read the bicing.csv database. Define the X matrix of the categorical variables and perform a
-multiple correspondence analysis (MCA) by considering a ventilation level of 1% for the
-infrequent categories and saving the results of the first 10 dimensions. Use as active variables:
-"Start.weekday", "Period", "Metro.station.E", "Downtown.E", "Account.type" and
-"Weather.main". Define "Month" and "Temperature" as supplementary variables. Then answer
-the following questions:
-- What is the number of dimensions that this MCA generates? What does this value equal?
-- Interpret the first factorial plane (dimensions 1 and 2) by means of variables and categories
-- Which percentage of variability is explained by the first two dimensions?
-- Decide the number of significant dimensions that you retain.
-- Discuss which modalities contribute most to the first and second dimensions.
-- For the other variables, identify the dimensions where the categories of “Metro.station.E” and
-“Downtown.E” are best represented.
-- Are the supplementary variables related to the principal axes? In which way?
-You must justify all the steps you take. You must also contextualize all results
-```
-
-## MCA on the first 8 columns
-```{r}
-# perform CA on the first 8 columns
-res.ca <- CA(mortality[, 1:8],graph= FALSE) # don't show CA graph
-```
-
-Due to the high number of rows, the CA graph is very difficult to interpret; we'll try to visualize things in a smarter way.
-At first, let's see a summary of the performed CA to obtain some first insights.
-
-
+## Questions
+**What is the number of dimensions that this MCA generates? What does this value equal?**
 
 ```{r}
-#summary(res.ca)
+bicing_mca$eig
 ```
+After looking at the MCA results above, we can see that this MCA generates 16 dimensions and not 10 as we requested. The fact that 16 dimensions are present means that there was 16 distinct eigenvalues during the decomposition and thus 16 dimensions (which together explain 100% of the variance of the data).
 
 
 ```{r}
