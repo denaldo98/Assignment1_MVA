@@ -20,6 +20,8 @@ library(factoextra) # for ggplot visualizations
 
 ## Exploratory data analysis
 
+Before applying CA let's first explore the dataset.
+
 ```{r}
 # load the data
 data("mortality")
