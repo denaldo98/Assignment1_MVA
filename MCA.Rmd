@@ -203,8 +203,47 @@ fviz_screeplot(bicing_mca, addlabels = TRUE, ylim = c (0, 10))
 **Which percentage of variability is explained by the first two dimensions?**
 For example, for the above interpretation of variables and categories, we used the two first dimensions. Even if they are the most explaining in terms of variance, they only account for 16% of variance in total:
 ```{r}
-head(bicing_mca$eig, 2)
+head(bicing_mca$eig, 8)
 ```
 
 Therefore, these dimensions are not so representative of the whole variance.
+
+**Decide the number of significant dimensions that you retain.**
+The question is: how can we keep significant dimensions without loosing on representation quality (as too much dimension makes representation harder) ?
+
+In order to be able to draw conclusion on each variable influences, we propose to keep 3 pairs of dimensions (for plotting) thus **keeping the 6 first dimensions**, accounting for 43% of the variance (according to the R code output above).  
+
+
+
+**Discuss which modalities contribute most to the first and second dimensions.**
+As we can see on the variable plot (same as above):
+```{r}
+fviz_mca_var(bicing_mca, repel = TRUE, ggtheme = theme_minimal())
+```
+
+Or with **inverse** ranking of contribution to the first dimension (Morning is first):
+```{r}
+rank(bicing_mca$var$contrib[,1])
+```
+And to the second dimension (Clear is first):
+```{r}
+rank(bicing_mca$var$contrib[,2])
+```
+
+We can see that:  
+*For the first dimension: we first note that variable categories have sparse rankings. It is mostly Period (with Morning 1st and Night 5th), Account.type (with Casual as 2nd) and Start.weekday (with Saturday 3rd and Sunday 4th) that are the top contributors to this dimension.
+*For the second dimension: the variable categories are less spreaded than in the first dimension. Top contributors are Weather (with Clear 1st and Cloudy 2nd) then Period (with Night 3rd and Afternoon 4th) and Start.weekday (Friday 5th and Monday 6th).
+
+We can also compare both dimension correlation. In overall, Period is the top contributor to both dimension (Morning/Night for the 1st, Night/Afternoon for the 2nd), followed by Start.weekday although contributing with different days (Saturday/Sunday for the 1st, Friday/Monday for the 2nd).   
+
+It is normal that there is not that much correlation beween those two dimensions as the goal of computing those dimensions is to maximize variance explaination thus reducing correlation at maximum (or having those two dimensions would be useless as giving the same insights). Here is the correlation score (-0.17) which we expected to be low:
+```{r}
+cor(bicing_mca$var$contrib[,1:2])
+```
+
+# TODO
+
+**For the other variables, identify the dimensions where the categories of “Metro.station.E” and “Downtown.E” are best represented.**
+
+**Are the supplementary variables related to the principal axes? In which way?**
 
