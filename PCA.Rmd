@@ -439,7 +439,7 @@ fviz_eig(cars_pca, addlabels = TRUE, ylim = c(0, 70))
 
 As stated before, the first and the second component alone explain almost 80% of the variance pf the whole data points, therefore, they are the main candidate to summarize the information of the data.
 
-When looking at the scre eplot, it is important to look for elbows, which means a point after which the eigenvalues start decrease more slowly. As we can see from the plot, the elbow appears passing from the second to the third dimension.
+When looking at the scree plot, it is important to look for elbows, which means a point after which the eigenvalues start decrease more slowly. As we can see from the plot, the elbow appears passing from the second to the third dimension.
 
 It is useful to use the 'get_pca_var()' function of the 'factoextra' package, which provides a list of matrices containing all the results for the active variables (coordinates, correlation between variables and axes, squared cosine and contributions) which we will then print.
 
@@ -534,16 +534,16 @@ The contributions of variables in accounting for the variability in a given prin
 -   Variables that do not correlated with any PC or correlated with the last dimensions are variables with low contribution and might be removed to simplify the overall analysis.
 
 ```{r}
-head(var$contrib, 4)
+head(var$contrib, 11)
 ```
 
-It's possible to use the function corrplot() to highlight the most contributing variables for each dimension:
+It's possible to use the function 'corrplot()' to highlight the most contributing variables for each dimension:
 
 ```{r}
 corrplot(var$contrib, is.corr=FALSE)  
 ```
 
-As we can see all the variables contributes more or less in the same way to the first dimension, while for the other dimensions there are unbalanced contributions in determining the PCs.
+As we can see all the variables contributes more or less in the same way to the first dimension, while for the other dimensions there are unbalanced contributions in determining the PCs. So it seems like there aren't variables that can be discarded to simplify the overall analysis.
 
 The function fviz_contrib() can be used to draw a bar plot of variable contributions.
 
@@ -557,7 +557,7 @@ fviz_contrib(cars_pca, choice = "var", axes = 1, top = 10)
 fviz_contrib(cars_pca, choice = "var", axes = 2, top = 10)
 ```
 
-The red dashed line on the graph above indicates the expected average contribution. For a given component, a variable with a contribution larger than this cutoff could be considered as important in contributing to the component.
+The red dashed line on the graph above indicates the expected average contribution. For a given component, a variable with a contribution larger than this cutoff could be considered as important in contributing to the component. For the first dimension, almost every variable has a contribution around the red dashed line, while for the second dimension the contribution given by Length is not comparable with the one of Cylinders or CityMPG.
 
 Now we can plot again the correlation circle, highlighting the most important variables for the first two dimensions.
 
@@ -664,15 +664,13 @@ fviz_pca_ind(cars_pca,
              ) + scale_shape_manual(values=c(0, 6, 12, 18, 24, 19 ,25)) #change shapes
 ```
 
-As we can observe the data are quite spread along each directions. The most significant cluster that can be observed is the one representing the cars of the Minivan type in the bottom-right corner.
+As we can observe the data are quite spread along each directions. The most significant cluster that can be observed is the one representing the cars of the Minivan type in the bottom-right corner. Moreover we can observe a majority of the SUV type of cars laying in the first and fourth quadrant of the graph.
 
-### Bi-plot
+### Biplot
 
 Finally we draw the biplot, which is the combination of the PCA score plot, together with the loading plot.
 
 ```{r}
-
-
 fviz_pca_biplot(cars_pca, 
                 col.ind = cars_lab$Model, palette = "jco", 
                 addEllipses = FALSE, label = "var",
@@ -680,7 +678,7 @@ fviz_pca_biplot(cars_pca,
                 legend.title = "Models")+ scale_shape_manual(values=c(0, 6, 12, 18, 24, 19 ,25))
 ```
 
-As we can see the Minivan type of cars are depicted together with the Length, Wheelbase and Width variables, which make sense considering that this type of car is the one having the greatest values regarding these attributes. Also the SUV type of cars are partially together in a cluster, and are near the Engine, Cylinders and Horsepower variables, which is coherent given the kind of car.
+As we can see the Minivan type of cars are depicted together with the Length, Wheelbase and Width variables, which make sense considering that this type of car is the one having the greatest values regarding these attributes. Also the SUV type of cars are partially together in a cluster, and are near the Engine, Cylinders and Horsepower variables, which is coherent given the kind of car. Even if not perfectly represented, the Sports car are more spreaded in the first quadrant, where Dealer and Retail variables are pointing, which is coherent with the fact that these kind of cars are usually the most expensive one.
 
 Let's see another possible version of the biplot in which we are trying to color both the individuals and the groups. Specifically the groups are colored based on their contributions.
 
@@ -699,3 +697,5 @@ fviz_pca_biplot(cars_pca,
                                     alpha = "Contrib")
                 )
 ```
+
+As we observed also before, the less contributing variables are HighwayMPG and CityMPG.
