@@ -19,7 +19,7 @@ rm(list = ls())
 #install.packages(c("FactoMineR", "factoextra", "gplots", "corrplot"))
 ```
 
-```{r message=FALSE,warning=FALSE}
+```{r, results='hide'}
 # load libraries
 library(FactoMineR) # for CA
 library(factoextra) # for ggplot visualizations
