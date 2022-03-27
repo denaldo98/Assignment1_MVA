@@ -1,332 +1,420 @@
 ---
 title: "PCA Notebook"
-output: html_notebook
+author: "Denaldo Lapi, Samy Chouti, Franscesco Aristei"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_notebook: default
+  html_document:
+    df_print: paged
+  pdf_document: default
 ---
 
-# !diagnostics off
-
-We first delete the R objects left in memory:
-
+```{r, include=TRUE}
+# delete R objects left in memory
 rm(list = ls())
+```
 
 Then we load the needed packages:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(dplyr)
-library(kableExtra)
+library(kableExtra) # for viz
 library(HSAUR3)
 library(readr)
 ```
 
+## Exploratory data analysis
 
-```{r}
-b = read_csv("cars2004.csv")
-b
+Let's load and inspect the dataset
+
+```{r, include=FALSE}
+?read.csv
 ```
 
-
-
-Next, we retrive the data:
-```{r}
-bicing = read_csv("cars2004.csv")
-spec(bicing)
+```{r, include=TRUE}
+# load the data
+cars = read.csv("cars2004.csv")
 ```
 
-Now, it is useful to visualize the data in a tabular fashion with the Kable library:
+```{r, include=TRUE}
+# inspect the dataset
+head(cars)
+```
+
+Now, it is useful to visualize the data in a tabular fashion with the Kable library and with the pipe operator. We show only 5 rows since there are 428 total rows
+
 ```{r}
-bicing[1:5 ,] %>%
+cars[1:5 ,] %>%
 kbl(caption = "Cars models") %>%
 kable_classic(full_width = F, html_font = "Cambria")
-
 ```
 
-The dataset is composed by 7 binary categorical variables and 11 continuous variables.
-Given that we are trying to apply the PCA algorithm to the dataset, which works with continuous data, the binary variables will be treated as supplementary qualitative variables, specifically, we will use them to identify specific group of data points.
+```{r}
+dim(cars)
+```
+
+The dataset consists of 428 cars from the 2004 model year and 19 features. The first feature is the name of the car (variable Name). Apart from that, seven features are binary indicators; the other 11 features are numerical, i.e. continuous.
+
+Since our goal is to apply the PCA algorithm , which works with continuous data, the binary variables will be treated as supplementary qualitative variables; specifically, we will use them to identify specific clusters of data points as we will see later.
+
 Now it can be useful to visualize some selected rows and columns:
 
 ```{r}
-bicing%>% slice(c(10,25)) %>% 
+cars %>% slice(c(10,25)) %>% 
                 kbl() %>%
                  kable_classic(full_width = F, html_font = "Cambria")
 ```
-Before proceeding in the exploration of the data, it is important to understand the quality of the dataset, looking for example if there are NA value.
-We decided to look for the sum  and the mean of the NA values in each column.
+
+Let's see a brief summary of the main statistics of the dataset:
 
 ```{r}
+summary(cars)
+```
+
+## Preproccessing
+
+Before proceeding in the exploration of the data, it is important to understand the quality of the dataset, looking for example if there are NA values and outliers.
+
+### Missing values
+
+We can see from the above summary that many columns contain NA values, therefore we should solve this problem.
+
+Let's look at the sum and the mean of the NA values in each column.
+
+```{r, include=TRUE}
 
 print("Number of NA values in each column:")
-for(name in names(bicing)){
-  print(paste(name,  ": ", sum(is.na(bicing[, name]))))
+for(name in names(cars)){
+  print(paste(name,  ": ", sum(is.na(cars[, name]))))
 }
 
 print("--------------------------------------------------------------------")
 
 print("Mean of the NA values in each column:")
-for(name in names(bicing)){
-  print(paste(name, ": ", mean(is.na(bicing[, name]))))
+for(name in names(cars)){
+  print(paste(name, ": ", mean(is.na(cars[, name]))))
 }
 ```
-We observe that there are several columns having NA values.
-Some of them are categorical variable, while other are numerical one.
-We need to treat it differently.
+
+We observe that there are several columns having NA values. Some of them are categorical variables (binary), while others are numerical ones.
+
+We need to treat differently this two cases.
+
 One possible option would be to replace the NA values in the categorical variables with the most used value in that specific column (either 0 or 1) applying a sort of "majority voting".
-While for the numerical variable, we can simply substitute the NA values with the mean of the column.
 
+While for the numerical variables, we can simply substitute the NA values with the mean of the column.
+
+The following cell of code applies this procedure:
 
 ```{r}
-# we retrieve for the categorical variable having NA values the most used
-# value between 0 and 1.
+# retrieve for the categorical variable having NA values (i.e. the Sports variable) the most used value between 0 and 1
 
-value <- tail(names(sort(table(bicing$Sports))), 1)
-bicing$Sports[is.na(bicing$Sports)] <- value
-
+value <- tail(names(sort(table(cars$Sports))), 1)
+cars$Sports[is.na(cars$Sports)] <- value
 
 
-# now we substitute with the mean the NA values in the numerical variable
 
-citympg_mean <- mean(bicing$CityMPG, na.rm = TRUE)
-highwaympg_mean <- mean(bicing$HighwayMPG, na.rm = TRUE)
-weight_mean <- mean(bicing$Weight, na.rm = TRUE)
-wheelbase_mean <- mean(bicing$WheelBase, na.rm = TRUE)
-lenght_mean <- mean(bicing$Length, na.rm = TRUE)
-width_mean <- mean(bicing$Width, na.rm = TRUE)
+# now we substitute with the mean the NA values in the numerical variables
+# first we calculate the mean
+citympg_mean <- mean(cars$CityMPG, na.rm = TRUE)
+highwaympg_mean <- mean(cars$HighwayMPG, na.rm = TRUE)
+weight_mean <- mean(cars$Weight, na.rm = TRUE)
+wheelbase_mean <- mean(cars$WheelBase, na.rm = TRUE)
+lenght_mean <- mean(cars$Length, na.rm = TRUE)
+width_mean <- mean(cars$Width, na.rm = TRUE)
 
-
-bicing$CityMPG[is.na(bicing$CityMPG)] <- citympg_mean
-bicing$HighwayMPG[is.na(bicing$HighwayMPG)] <- highwaympg_mean
-bicing$Weight[is.na(bicing$Weight)] <- weight_mean
-bicing$WheelBase[is.na(bicing$WheelBase)] <- wheelbase_mean
-bicing$Length[is.na(bicing$Length)] <- lenght_mean
-bicing$Width[is.na(bicing$Width)] <- width_mean
+# and then we substitute
+cars$CityMPG[is.na(cars$CityMPG)] <- citympg_mean
+cars$HighwayMPG[is.na(cars$HighwayMPG)] <- highwaympg_mean
+cars$Weight[is.na(cars$Weight)] <- weight_mean
+cars$WheelBase[is.na(cars$WheelBase)] <- wheelbase_mean
+cars$Length[is.na(cars$Length)] <- lenght_mean
+cars$Width[is.na(cars$Width)] <- width_mean
 
 ```
-Let's visualize again the data without the NA values
+
+Let's visualize again the statistics:
 
 ```{r}
-bicing[1:5,] %>%
-kbl(caption = "Cars models") %>%
-kable_classic(full_width = F, html_font = "Cambria")
+summary(cars)
 ```
 
-The goal of this task is to apply PCA to the given dataset.
-However as stated before, we observe that seven features are of binary type, while PCA fit naturally with continuous variable.
-Therefore we decide to discard the binary variables and continue working only with the continuous one.
-We will retrieve later the categorical variables to distinguish the data points in different classes.
+And the presence of NA values:
 
 ```{r}
 
+print("Number of NA values in each column:")
+for(name in names(cars)){
+  print(paste(name,  ": ", sum(is.na(cars[, name]))))
+}
+
+print("--------------------------------------------------------------------")
+
+print("Mean of the NA values in each column:")
+for(name in names(cars)){
+  print(paste(name, ": ", mean(is.na(cars[, name]))))
+}
+```
+
+As shown, we have solved the problem of the missing values.
+
+## Outliers
+
+The goal of this task is to apply PCA to the given dataset. However, as stated before, we observe that seven features are of binary type, while PCA fits naturally with continuous variables.
+
+Therefore we decide to discard the binary variables and continue working only with the continuous ones. We will retrieve later the categorical variables and use them as supplementary ones to distinguish the data points in different classes.
+
+```{r}
+# list with the variables to mantain
 keeps <- c("Retail", "Dealer", "Engine", "Cylinders", "Horsepower", "CityMPG", "HighwayMPG", "WheelBase", "Weight", "Length", "Width")
-bicing <- bicing[keeps]
 
+# select columns
+cars <- cars[keeps]
 ```
 
+It is useful to visualize the data, utilizing for example a scatter plot. This could be useful to visualize the presence of outliers.
 
-It is useful to visualize the data, utilizing for example a scatter plot.
 Given the high dimensionality of the dataset, we needed some extra effort to obtain the scatter plot.
-Specifically we used the x11 functionalities to obtain an image with the right size to have a clear view of the scatter plot.
-Together with the scatterplot of the numerical variable, using the ggplot and GGally libraries, we can also compute the correlation matrix.
 
-```{r}
+Specifically we used the x11 functionalities to obtain an image with the right size to have a clear view of the scatter plot. Together with the scatter plot of the numerical variable, using the ggplot and GGally libraries, we can also compute the correlation matrix.
 
+```{r, message=FALSE}
 library(ggplot2)
 library(GGally)
-
-x11(width = 20, height = 15)
-ggpairs(bicing)
-
-Sys.sleep(10)
 ```
-![Scatter-plot](scatterplot_fin.png)
-We can observe that some variables are highly correlated between each other.
-Is the case of the pairs Retail-Dealer,  HighwayMPG-CityMPG, and Cylinder-Engine which makes sense given the meaning of such variables in the context of the data:
 
-- Retail: Suggested retail price (US)
-- Dealer: Price to dealer (US)
-
-- CityMPG: City gas mileage
-- HighwayMPG: Highway gas mileage
-
-
-From the scatter plot, it seems like there are several outliers that needs to be handled in order to improve the quality of the dataset.
-To delete such points we used a utility function, which for each column at the numerical values and via the boxplot.stats informations, it detects the points outside the interquartile range, defining them as NA points.
 ```{r}
+x11(width = 20, height = 15)
+ggpairs(cars)
 
+#Sys.sleep(10)
+```
+
+![Scatter-plot](scatterplot_fin.png)
+
+We can observe that some variables are highly correlated between each other. It is the case of the pairs Retail-Dealer, HighwayMPG-CityMPG, and Cylinder-Engine which makes sense given the meaning of such variables in the context of the data:
+
+-   Retail: Suggested retail price (US)
+
+-   Dealer: Price to dealer (US)
+
+-   CityMPG: City gas mileage
+
+-   HighwayMPG: Highway gas mileage
+
+-   -Cylinder: Number of engine cylinders
+
+-   Engine: Engine size
+
+This is a good scenario for applying PCA, since the goal of the method is to capture and remove the redundances contained in the date.
+
+From the scatter plot, it seems like there are several outliers that need to be handled in order to improve the quality of the dataset.
+
+To delete such points we use a utility function which, for each numerical column, detects the points outside the interquartile range via the *boxplot.stats( )* informations, and defines them as NA points.
+
+```{r}
 library(dplyr)
-library(purrr)
+library(purrr) # functional programming package
+```
 
+```{r}
 # first we copy the original dataframe
+pp_cars <- data.frame(cars)
 
-pp_bicing <- data.frame(bicing)
-
+# utility function
 outlierreplacement <- function(dataframe){
    dataframe %>%          
            map_if(is.numeric, ~ replace(.x, .x %in% boxplot.stats(.x)$out, NA)) %>%
            bind_cols 
 }
 
-na_bicing <- outlierreplacement(pp_bicing)
-
+# apply function to our dataset
+na_cars <- outlierreplacement(pp_cars)
 ```
 
-The outliers have been transformed into NA values. 
-As we did before, we can transform such values into the mean of the columns to which they belong.
+The outliers have been transformed into NA values.
 
-First we have to check another time the columns in which we have NA values,
-we use the keeps variable to avoid looking at the categorical variables.
-This has to be done because otherwise a lot of values in the categorical variable are identified as 'outliers' even though in such columns only the values 0 and 1 are assigned.
+As we did before, we can transform such values into the mean of the columns to which they belong to
+
+First we have to check another time the columns in which we have NA values.
+
+We will use the dataframe without the categorical variables (na_cars), this has to be done because otherwise a lot of values in the categorical variable are identified as 'outliers' even though in such columns we have only the values 0 and 1
 
 ```{r}
 
 print("Number of NA values in each column:")
-for(name in names(na_bicing)){
-  print(paste(name,  ": ", sum(is.na(na_bicing[, name]))))
+for(name in names(na_cars)){
+  print(paste(name,  ": ", sum(is.na(na_cars[, name]))))
 }
 
 print("--------------------------------------------------------------------")
 
 print("Mean of the NA values in each column:")
-for(name in names(na_bicing)){
-  print(paste(name, ": ", mean(is.na(na_bicing[, name]))))
+for(name in names(na_cars)){
+  print(paste(name, ": ", mean(is.na(na_cars[, name]))))
 }
 ```
+
 After this, we can substitute the NA values as explained above.
 
 ```{r}
-# now we substitute with the mean the NA values in the numerical variable
+# now we substitute with the mean the NA values in the numerical variables
 
-retail_mean <- mean(na_bicing$Retail, na.rm = TRUE)
-dealer_mean <- mean(na_bicing$Dealer, na.rm = TRUE)
-engine_mean <- mean(na_bicing$Engine, na.rm = TRUE)
-cylinders_mean <- mean(na_bicing$Cylinders, na.rm = TRUE)
-horsepower_mean <- mean(na_bicing$Horsepower, na.rm = TRUE)
+retail_mean <- mean(na_cars$Retail, na.rm = TRUE)
+dealer_mean <- mean(na_cars$Dealer, na.rm = TRUE)
+engine_mean <- mean(na_cars$Engine, na.rm = TRUE)
+cylinders_mean <- mean(na_cars$Cylinders, na.rm = TRUE)
+horsepower_mean <- mean(na_cars$Horsepower, na.rm = TRUE)
 
-citympg_mean <- mean(na_bicing$CityMPG, na.rm = TRUE)
-highwaympg_mean <- mean(na_bicing$HighwayMPG, na.rm = TRUE)
-weight_mean <- mean(na_bicing$Weight, na.rm = TRUE)
-wheelbase_mean <- mean(na_bicing$WheelBase, na.rm = TRUE)
-lenght_mean <- mean(na_bicing$Length, na.rm = TRUE)
-width_mean <- mean(na_bicing$Width, na.rm = TRUE)
+citympg_mean <- mean(na_cars$CityMPG, na.rm = TRUE)
+highwaympg_mean <- mean(na_cars$HighwayMPG, na.rm = TRUE)
+weight_mean <- mean(na_cars$Weight, na.rm = TRUE)
+wheelbase_mean <- mean(na_cars$WheelBase, na.rm = TRUE)
+lenght_mean <- mean(na_cars$Length, na.rm = TRUE)
+width_mean <- mean(na_cars$Width, na.rm = TRUE)
 
-na_bicing$Retail[is.na(na_bicing$Retail)] <- retail_mean
-na_bicing$Dealer[is.na(na_bicing$Dealer)] <- dealer_mean
-na_bicing$Engine[is.na(na_bicing$Engine)] <- engine_mean
-na_bicing$Cylinders[is.na(na_bicing$Cylinders)] <- cylinders_mean
-na_bicing$Horsepower[is.na(na_bicing$Horsepower)] <- horsepower_mean
+na_cars$Retail[is.na(na_cars$Retail)] <- retail_mean
+na_cars$Dealer[is.na(na_cars$Dealer)] <- dealer_mean
+na_cars$Engine[is.na(na_cars$Engine)] <- engine_mean
+na_cars$Cylinders[is.na(na_cars$Cylinders)] <- cylinders_mean
+na_cars$Horsepower[is.na(na_cars$Horsepower)] <- horsepower_mean
 
-na_bicing$CityMPG[is.na(na_bicing$CityMPG)] <- citympg_mean
-na_bicing$HighwayMPG[is.na(na_bicing$HighwayMPG)] <- highwaympg_mean
-na_bicing$Weight[is.na(na_bicing$Weight)] <- weight_mean
-na_bicing$WheelBase[is.na(na_bicing$WheelBase)] <- wheelbase_mean
-na_bicing$Length[is.na(na_bicing$Length)] <- lenght_mean
-na_bicing$Width[is.na(na_bicing$Width)] <- width_mean
+na_cars$CityMPG[is.na(na_cars$CityMPG)] <- citympg_mean
+na_cars$HighwayMPG[is.na(na_cars$HighwayMPG)] <- highwaympg_mean
+na_cars$Weight[is.na(na_cars$Weight)] <- weight_mean
+na_cars$WheelBase[is.na(na_cars$WheelBase)] <- wheelbase_mean
+na_cars$Length[is.na(na_cars$Length)] <- lenght_mean
+na_cars$Width[is.na(na_cars$Width)] <- width_mean
 ```
 
-
-Let's see the updated dataset:
+Let's see if we have correctly removed NAs:
 
 ```{r}
-na_bicing[1:5,] %>%
-kbl(caption = "Cars models") %>%
-kable_classic(full_width = F, html_font = "Cambria")
+print("Number of NA values in each column:")
+for(name in names(na_cars)){
+  print(paste(name,  ": ", sum(is.na(na_cars[, name]))))
+}
+
+print("--------------------------------------------------------------------")
+
+print("Mean of the NA values in each column:")
+for(name in names(na_cars)){
+  print(paste(name, ": ", mean(is.na(na_cars[, name]))))
+}
 ```
 
-To see the effects that the elimination of the outliers has produced let's plot a box plot for each variable.
-It seems like some outliers are still present in the dataset, but the number is much smaller then before.
+To see the effects that the elimination of the outliers has produced let's plot a box plot for each variable. It seems like some outliers are still present in the dataset, but the number is much smaller then before.
 
 ```{r}
-boxplot(na_bicing$Retail, na_bicing$Dealer, na_bicing$Engine,
-        na_bicing$Cylinders, na_bicing$Horsepower, na_bicing$CityMPG,
-        names=c("Retail", "Dealer", "Engine", "Cylinders", "Horsepower", 
+boxplot(na_cars$Engine,
+        na_cars$Cylinders, na_cars$Horsepower, na_cars$CityMPG,
+        names=c("Engine", "Cylinders", "Horsepower", 
                 "CityMPG"))
 ```
+
 ```{r}
-boxplot(na_bicing$HighwayMPG, na_bicing$WheelBase,
-        na_bicing$Weight, na_bicing$Length, na_bicing$Width, 
-        names=c("HighwayMPG","Wheelbase", "Weight", "Length", "Width"))
+boxplot(na_cars$HighwayMPG, na_cars$WheelBase, na_cars$Length, na_cars$Width, 
+        names=c("HighwayMPG","Wheelbase", "Length", "Width"))
 ```
 
+```{r}
+boxplot(na_cars$Retail, na_cars$Dealer, na_cars$Weight,
+        names=c("Weight", "Retail", "Dealer"))
+```
+
+Let's see how the scatter plot has changes
+
+```{r}
+x11(width = 20, height = 15)
+ggpairs(na_cars)
+Sys.sleep(10)
+```
+
+![](images/scatter%20final.png)
+
+We put above the image of the plot since the one generated by R overlaps.
 
 ## PCA
 
-
 Now that the pre-processing phase has been completed, we can start applying PCA in order to reduce the dimensionality of the dataset.
 
-The first thing to observe is that the columns work on very different scales, therefore, it is necessary to extract the PCs from the correlation matrix R.
-So that we don't need to center the data set.
+The first thing to observe is that the columns work on very different scales, for example the variables 'Weigth', 'Retail' and 'Dealer' have values much greater that the other columns, therefore, it is necessary to extract the PCs from the correlation matrix **R**.; in that way we don't need to center the data set.
+
+We'll use the 'princomp()' function of the 'R stats' package, by specifying the parameter 'cor' to indicate the function to use the correlation matrix.
 
 ```{r}
-
 ### PCA
-
-bicing_pca <- princomp(na_bicing, cor=TRUE)
-
+cars_pca <- princomp(na_cars, cor=TRUE)
 ```
 
-
-So we obtain the list of the coefficients defining the PCs: PC scores etc.
+The result of the above function is a list containing the various elements defining the PCs:
 
 ```{r}
-str(bicing_pca)
+str(cars_pca)
 ```
 
-Now it is useful to observe the loading vector for the first PC.
+### Visualization and Interpretation
+
+Let' s now check the results one by one
+
+### Loadings
+
+The coefficients (also called loadings or loading vector) for the first PC are obtained as:
 
 ```{r}
-l1 <- bicing_pca$loadings[, 1]
+l1 <- cars_pca$loadings[, 1]
 l1
 ```
+
 The vector has to be orthonormal, we can check this computing the dot product of the vector with itself:
 
 ```{r}
 l1%*%l1
 ```
+
 And now we can check that all the loading vectors are orthogonal between each other, computing the loading vector for the second PC and then applying the dot product with the loading vector computed above.
 
 ```{r}
-l2 <- bicing_pca$loadings[, 2]
+l2 <- cars_pca$loadings[, 2]
 
 l1%*%l2
 ```
 
+It's important to rescale the loadings, so that the coefficients of the most important components are larger than those of less important ones. I
 
-### Rescaled Coefficients
-
-It's important to rescale the loadings, so that the coefficients of the most important components are larger than those of less important one.
 In order to rescale the loadings we use the standard deviations of the principal components.
 
+The rescaled loadings for the 1st PC are calculated as:
+
 ```{r}
-rescaledl1 <- l1 * bicing_pca$sdev[1]
+rescaledl1 <- l1 * cars_pca$sdev[1]
 rescaledl1
 ```
 
-
-### Explaned Variance
+### Explained Variance
 
 First we print the summary function, to obtain for each component it's standard deviation, the proportion of variance explained and the cumulative proportion of variance
 
 ```{r}
-summary(bicing_pca)
+summary(cars_pca)
 ```
-We can observe that the first component explains alone a considerable proportion of the whole variability of the dataset (around 60%) and together with the second component the amount of explained variability rises to 76 %.
-This means that probably, we will be able to summarize the whole dataset using only the two obtained components.
 
+We can observe that the first component explains alone a considerable proportion of the whole variability of the dataset (around 60%) and together with the second component the amount of explained variability rises to 76 %. This means that probably, we will be able to summarize the whole dataset using only the two obtained components.
 
-The plot for the proportion of variance explained
+Let's plot the proportion of explained variance by means of a scree plot
 
 ```{r}
-
 # compute the percentage of variance explained for each component
-pr.var <- bicing_pca$sdev^2
+pr.var <- cars_pca$sdev^2
 pve <- pr.var/sum(pr.var)
 
-
+# Plot
 plot(pve, xlab="Principal Component",
 ylab="Proportion of Variance Explained",
 ylim=c(0,1),type='b')
 ```
 
-
-Then we can obtain the cumulative proportion of variance
+Then we can simply obtain and plot the cumulative proportion of variance
 
 ```{r}
 
@@ -335,33 +423,30 @@ ylab="Cumulative Proportion of Variance Explained",
 ylim=c(0,1),type='b')
 ```
 
-
 ### Choosing the number of components
 
-Now we should choose the number of components with which we want to explain our data.
-To do so it is useful to understand which are the components that retain the majority of the variability.
-A good graphical indicator is the screeplot, which plots the variance explaind by each component.
-To do such plot we load the factoextra library.
+Now we should choose the number of components with which we want to explain our data. To do so it is useful to understand which are the components that retain the majority of the variability.
+
+A good graphical indicator is the scree plot, which plots the variance explain by each component. To do such plot we load the 'factoextra' library:
 
 ```{r}
 library(factoextra)
 ```
 
-
 ```{r}
-fviz_eig(bicing_pca, addlabels = TRUE, ylim = c(0, 70))
+fviz_eig(cars_pca, addlabels = TRUE, ylim = c(0, 70))
 ```
-As stated before, the first and the second component alone explain almost 80% of the variance, therefore, they are the main candidate to summarize the information of the other variables.
-When looking at the screeplot, it is important to look for elbows, which means a point after which the eigenvalues start decrease more slowly.
-As we can see from the plot, the elbow appears passing from the second to the third dimension.
 
-It is useful to use the get_pca_var() function, which provides a list of matrices containing all the results for the active variables (coordinates, correlation between variables and axes, squared cosine and contributions) which we will then print.
+As stated before, the first and the second component alone explain almost 80% of the variance pf the whole data points, therefore, they are the main candidate to summarize the information of the data.
+
+When looking at the scre eplot, it is important to look for elbows, which means a point after which the eigenvalues start decrease more slowly. As we can see from the plot, the elbow appears passing from the second to the third dimension.
+
+It is useful to use the 'get_pca_var()' function of the 'factoextra' package, which provides a list of matrices containing all the results for the active variables (coordinates, correlation between variables and axes, squared cosine and contributions) which we will then print.
 
 ```{r}
-var <- get_pca_var(bicing_pca)
+var <- get_pca_var(cars_pca)
 var
 ```
-
 
 ### Loading Plot
 
@@ -372,49 +457,51 @@ We can observe the loadings for each PC.
 head(var$coord, 11)
 ```
 
+The first principal component has large positive association with almost every variables except for CityMPG and HighwayMPG, with which it has a large negative association. CityMPG and HighwayMPG represent the gas mileage respectively in the city and in the highway. So this component measures costly cars with powerful engine and big sizes, like SUV, Minivan etc. Moreover this component tries to look at low consumption models given that it has negative association with the gas mileage attributes.
+
+The second component has a large positive association with Retail and Dealer, which means that it describes the most expensive cars. It has also positive association with cylinders and horsepower, this, with the above results, may suggests that this component is associated with Sports car.
+
+The third component has positive association with HighwayMPG and CityMPG so it measures models with high consumption of gas. It has also positive association with Wheelbase and Length and a slightly negative association with Cylinders and Engine, So it may describe models of modest performances having big size, which implies an high consumption of gas.
+
 Now we plot the correlation circle to show it better:
 
 ```{r}
-fviz_pca_var(bicing_pca, col.var = "black", labelsize = 2.5, repel = TRUE)
+fviz_pca_var(cars_pca, col.var = "black", labelsize = 2.5, repel = TRUE)
 ```
 
 The plot above shows the relationships between all variables. It can be interpreted as follow:
 
-- Positively correlated variables are grouped together.
+-   Positively correlated variables are grouped together.
 
-- Negatively correlated variables are positioned on opposite sides of the plot origin (opposed quadrants).
+-   Negatively correlated variables are positioned on opposite sides of the plot origin (opposed quadrants).
 
-- The distance between variables and the origin measures the quality of the variables. Variables that are away from the origin are well represented on the plot.
+-   The distance between variables and the origin measures the quality of the variables. Variables that are away from the origin are well represented on the plot.
 
 The plot confirms the highly correlation observed before in the scatter plot.
 
 #### Quality of representation
 
-The quality of representation of the variables on factor map is called cos2 (square cosine, squared coordinates).
-We can use the corrplot package to visualize the cos2
-
+The quality of representation of the variables on factor map is called cos2 (square cosine, squared coordinates). We can use the corrplot package to visualize the cos2
 
 ```{r}
 head(var$cos2, 4)
 ```
 
-
 ```{r}
 library("corrplot")
 corrplot(var$cos2, is.corr=FALSE)
 ```
-As imagined, the first component is the best in representing the variables.
-It’s also possible to create a bar plot of variables cos2 using the function fviz_cos2
+
+As imagined, the first component is the best in representing the variables. It's also possible to create a bar plot of variables cos2 using the function fviz_cos2
 
 ```{r}
 # Total cos2 of variables on Dim.1 and Dim.2
-fviz_cos2(bicing_pca, choice = "var", axes = 1:2)
+fviz_cos2(cars_pca, choice = "var", axes = 1:2)
 ```
 
+-   A high cos2 indicates a good representation of the variable on the principal component. In this case the variable is positioned close to the circumference of the correlation circle.
 
-- A high cos2 indicates a good representation of the variable on the principal component. In this case the variable is positioned close to the circumference of the correlation circle.
-
-- A low cos2 indicates that the variable is not perfectly represented by the PCs. In this case the variable is close to the center of the circle.
+-   A low cos2 indicates that the variable is not perfectly represented by the PCs. In this case the variable is close to the center of the circle.
 
 For a given variable, the sum of the cos2 on all the principal components is equal to one.
 
@@ -422,153 +509,138 @@ If a variable is perfectly represented by only two principal components (Dim.1 &
 
 For some of the variables, more than 2 components might be required to perfectly represent the data. In this case the variables are positioned inside the circle of correlations.
 
-It’s possible to color variables by their cos2 values using the argument col.var = "cos2".
+Regarding our data, we can observe from the correlation circle and the cos2 that almost every variable is perfectly represented with the first two components apart from CityMPG and HighwayMPG which seem to need also the third component.
 
-- variables with low cos2 values will be colored in “white”
-- variables with mid cos2 values will be colored in “blue”
-- variables with high cos2 values will be colored in red
+It's possible to color variables by their cos2 values using the argument col.var = "cos2".
 
-
+-   variables with low cos2 values will be colored in "white"
+-   variables with mid cos2 values will be colored in "blue"
+-   variables with high cos2 values will be colored in red
 
 ```{r}
 # Color by cos2 values: quality on the factor map
-fviz_pca_var(bicing_pca, col.var = "cos2",
+fviz_pca_var(cars_pca, col.var = "cos2",
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
              repel = TRUE, labelsize = 2.5 # Avoid text overlapping
              )
 ```
 
-
 ### Contributions of variables to PCs
 
 The contributions of variables in accounting for the variability in a given principal component are expressed in percentage.
 
-- Variables that are correlated with PC1 (i.e., Dim.1) and PC2 (i.e., Dim.2) are the most important in explaining the variability in the data set.
+-   Variables that are correlated with PC1 (i.e., Dim.1) and PC2 (i.e., Dim.2) are the most important in explaining the variability in the data set.
 
-- Variables that do not correlated with any PC or correlated with the last dimensions are variables with low contribution and might be removed to simplify the overall analysis.
-
+-   Variables that do not correlated with any PC or correlated with the last dimensions are variables with low contribution and might be removed to simplify the overall analysis.
 
 ```{r}
 head(var$contrib, 4)
 ```
 
-It’s possible to use the function corrplot() to highlight the most contributing variables for each dimension:
-
-
+It's possible to use the function corrplot() to highlight the most contributing variables for each dimension:
 
 ```{r}
 corrplot(var$contrib, is.corr=FALSE)  
 ```
+
 As we can see all the variables contributes more or less in the same way to the first dimension, while for the other dimensions there are unbalanced contributions in determining the PCs.
 
 The function fviz_contrib() can be used to draw a bar plot of variable contributions.
 
-
 ```{r}
 # Contributions of variables to PC1
-fviz_contrib(bicing_pca, choice = "var", axes = 1, top = 10)
+fviz_contrib(cars_pca, choice = "var", axes = 1, top = 10)
 ```
 
 ```{r}
 # Contributions of variables to PC2
-fviz_contrib(bicing_pca, choice = "var", axes = 2, top = 10)
+fviz_contrib(cars_pca, choice = "var", axes = 2, top = 10)
 ```
 
-
-The red dashed line on the graph above indicates the expected average contribution.
-For a given component, a variable with a contribution larger than this cutoff could be considered as important in contributing to the component.
+The red dashed line on the graph above indicates the expected average contribution. For a given component, a variable with a contribution larger than this cutoff could be considered as important in contributing to the component.
 
 Now we can plot again the correlation circle, highlighting the most important variables for the first two dimensions.
 
 ```{r}
-fviz_pca_var(bicing_pca, col.var = "contrib",
+fviz_pca_var(cars_pca, col.var = "contrib",
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              labelsize = 2
              )
 ```
 
-
 ### Principal Component scores
 
 The PC scores are the values of each PCs (linear combination of the original variables) evaluated in the data set.
 
-
 ```{r}
-head(predict(bicing_pca)) %>%
+head(predict(cars_pca)) %>%
   kbl(caption = "PCA scores") %>%
   kable_classic(full_width = F, html_font = "Cambria")
 ```
 
-
 The PCs should be uncorrelated
 
-
 ```{r}
-cor(bicing_pca$scores) %>%
+cor(cars_pca$scores) %>%
   kbl(caption = "PCA scores") %>%
   kable_classic(full_width = F, html_font = "Cambria")
 ```
 
 Now we can try to visualize the scatter plot between the score of the PC1, together with one the variables of the dataset, like for example the length.
 
-
 ```{r}
-pc1.scores <- bicing_pca$scores[,1]
-plot(na_bicing$WheelBase, pc1.scores)
+pc1.scores <- cars_pca$scores[,1]
+plot(na_cars$WheelBase, pc1.scores)
 ```
+
 From the above plot it seems like the first PC manages to explain the considered variable, also if not perfectly defined, we can observe a linear relationship between the two.
 
-
-Now, given the scores of each entry of the dataset, it is possible to visualize the Score Plot, which shows clusters of cars based on their similarity.
-First, we visualize the scores of the dataset.
+Now, given the scores of each entry of the dataset, it is possible to visualize the Score Plot, which shows clusters of cars based on their similarity. First, we visualize the scores of the dataset.
 
 ```{r}
-rbind(bicing_pca$scores[,1], bicing_pca$scores[,2])
+rbind(cars_pca$scores[,1], cars_pca$scores[,2])
 ```
 
-Due to the large amount of data points at disposal, it would be impossible to label each point in the graph.
-Therefore, we can use the supplementary categorical variables, represented by the model type of the car, to color each point.
-Before doing so, it is necessary to collapse all the binary variables regarding the model type, in one labelling variable.
-
+Due to the large amount of data points at disposal, it would be impossible to label each point in the graph. Therefore, we can use the supplementary categorical variables, represented by the model type of the car, to color each point. Before doing so, it is necessary to collapse all the binary variables regarding the model type, in one labelling variable.
 
 ```{r}
 
 #Sports	SUV	Wagon	Minivan	Pickup	AWD	RWD
 
-bicing_lab = read_csv("cars2004.csv")
+cars_lab = read_csv("cars2004.csv")
 
 
 # need to remove again the NA values
-value <- tail(names(sort(table(bicing_lab$Sports))), 1)
-bicing_lab$Sports[is.na(bicing_lab$Sports)] <- value
+value <- tail(names(sort(table(cars_lab$Sports))), 1)
+cars_lab$Sports[is.na(cars_lab$Sports)] <- value
 
 model <- c()
 
-for(i in 1:nrow(bicing_lab)){
+for(i in 1:nrow(cars_lab)){
   
-  if(bicing_lab[i, "Sports"] == 1){
+  if(cars_lab[i, "Sports"] == 1){
     model <- c(model, "Sport")
   }
-  else if(bicing_lab[i, "SUV"] == 1){
+  else if(cars_lab[i, "SUV"] == 1){
     model <- c(model, "SUV")
     
   }
-  else if(bicing_lab[i, "Wagon"] == 1){
+  else if(cars_lab[i, "Wagon"] == 1){
     model <- c(model, "Wagon")
   
   }
-  else if(bicing_lab[i, "Minivan"] == 1){
+  else if(cars_lab[i, "Minivan"] == 1){
     model <- c(model, "Minivan")
   
   }
-  else if(bicing_lab[i, "Pickup"] == 1){
+  else if(cars_lab[i, "Pickup"] == 1){
     model <- c(model, "Pickup")
   
   }
   else{
     model <- c(model, "Other")
   }
-  #else if(bicing_lab[i, "AWD"] == 1){
+  #else if(cars_lab[i, "AWD"] == 1){
    # model <- c(model, "AWD")
   
   #}
@@ -578,49 +650,45 @@ for(i in 1:nrow(bicing_lab)){
   #}
 }
 
-bicing_lab["Model"] <- model
+cars_lab["Model"] <- model
 ```
 
-
 ```{r}
-fviz_pca_ind(bicing_pca,
+fviz_pca_ind(cars_pca,
              geom.ind = "point", # show points only (nbut not "text")
-             col.ind = bicing_lab$Model, # color by groups
+             col.ind = cars_lab$Model, # color by groups
              palette = c("#D95F02", "#E7298A", "#66A61E", "#A6761D",
                          "#E6AB02", "#666666", "#7570B3"),
              addEllipses = FALSE, # Concentration ellipses
              legend.title = "Models"
              ) + scale_shape_manual(values=c(0, 6, 12, 18, 24, 19 ,25)) #change shapes
 ```
-As we can observe the data are quite spread along each directions.
-The most significant cluster that can be observed is the one representing the cars of the Minivan type in the bottom-right corner.
+
+As we can observe the data are quite spread along each directions. The most significant cluster that can be observed is the one representing the cars of the Minivan type in the bottom-right corner.
 
 ### Bi-plot
 
 Finally we draw the biplot, which is the combination of the PCA score plot, together with the loading plot.
 
-
 ```{r}
 
 
-fviz_pca_biplot(bicing_pca, 
-                col.ind = bicing_lab$Model, palette = "jco", 
+fviz_pca_biplot(cars_pca, 
+                col.ind = cars_lab$Model, palette = "jco", 
                 addEllipses = FALSE, label = "var",
                 col.var = "black", repel = TRUE,
                 legend.title = "Models")+ scale_shape_manual(values=c(0, 6, 12, 18, 24, 19 ,25))
 ```
-As we can see the Minivan type of cars are depicted together with the Length, Wheelbase and Width variables, which make sense considering that this type of car is the 
-one having the greatest values regarding these attributes.
-Also the SUV type of cars are partially together in a cluster, and are near the Engine, Cylinders and Horsepower variables, which is coherent given the kind of car.
 
-Let's see another possible version of the biplot in which we are trying to color both the individuals and the groups.
-Specifically the groups are colored based on their contributions.
+As we can see the Minivan type of cars are depicted together with the Length, Wheelbase and Width variables, which make sense considering that this type of car is the one having the greatest values regarding these attributes. Also the SUV type of cars are partially together in a cluster, and are near the Engine, Cylinders and Horsepower variables, which is coherent given the kind of car.
+
+Let's see another possible version of the biplot in which we are trying to color both the individuals and the groups. Specifically the groups are colored based on their contributions.
 
 ```{r}
-fviz_pca_biplot(bicing_pca, 
+fviz_pca_biplot(cars_pca, 
                 # Individuals
                 geom.ind = "point",
-                fill.ind = bicing_lab$Model, col.ind = "black",
+                fill.ind = cars_lab$Model, col.ind = "black",
                 pointshape = 21, pointsize = 2,
                 palette = "jco",
                 #addEllipses = TRUE,
@@ -631,5 +699,3 @@ fviz_pca_biplot(bicing_pca,
                                     alpha = "Contrib")
                 )
 ```
-
-
