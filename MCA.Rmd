@@ -223,8 +223,7 @@ sum(bicing_mca$eig[,1]>(1/6))
 
 Therefore, according to the empirical formula we should keep the first 8 dimensions.
 
-**Discuss which modalities contribute most to the first and second dimensions**
-Let's show the bar plot of the contribution to the first dimension (Morning is first): \> Please note that we will negate the input for each `rank` function uses in order to get descendant rankings and not the ascendant ranking that is offering the fuction by default.
+**Discuss which modalities contribute most to the first and second dimensions** Let's show the bar plot of the contribution to the first dimension (Morning is first): \> Please note that we will negate the input for each `rank` function uses in order to get descendant rankings and not the ascendant ranking that is offering the fuction by default.
 
 ```{r}
 fviz_contrib (bicing_mca, choice="var", axes=1, top=10)
@@ -289,7 +288,7 @@ bicing_mca$var$cos2[15,]
 
 **Are the supplementary variables related to the principal axes? In which way?**
 
-#### Supplementary quantitative variables 
+#### Supplementary quantitative variables
 
 Let's first analyze the `Temperature` correlations with the first 2 dimensions.
 
@@ -324,17 +323,11 @@ fviz_mca_var(bicing_mca, choice="var", repel = TRUE, ggtheme = theme_minimal())
 
 We can see that month is not strongly correlated with the first 2 dimensions.
 
+We can investigate even more the results for this supplementary qualitative variable:
+
 ```{r}
 bicing_mca$quali.sup
 ```
-
-And the maximum influence:
-
-```{r}
-max(bicing_mca$quali.sup$coord)
-```
-
-With that maximum influence score in Dim7 for November, we can see that it have a relatively strong influence but not on principal axis, therefore being out of scope for this question.
 
 **General conclusion about supplementary variables**\
 Whether it is quantitative or qualitative variables, we can see that they are not really related to principal dimensions Dim1 and Dim2 (but can be with other dimensions, as explained above).
